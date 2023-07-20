@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "jerboa2"
+version = "0.1.0"
+description = ""
+authors = ["samsja <sami.jaghouar@gmail.com>"]
+license = "apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+torch = ">=2.0.1"
+transformers = ">=4.30.2"
+jaxtyping = ">=0.2.20"
+beartype = ">=0.14.1"
+typer = {version = "^0.9.0", extras = ["all"]}
+wandb = "^0.15.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.3.1"
+black = ">=23.3.0"
+isort = ">=5.12.0"
+ruff = ">=0.0.269"
+pre-commit = ">=3.3.2"
+jupyterlab = ">=4.0.0"
+jupyterlab-code-formatter = ">=2.2.1"
+mypy = ">=1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+ignore = ["F722"]
