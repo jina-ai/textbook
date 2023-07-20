@@ -10,3 +10,7 @@ def train(debug: bool = False):
     model = StarCoderTest() if debug else StarCoderTiny()
     tokenizer = model.get_tokenizer()
     _dataset = TinyStoriesDataset(tokenizer=tokenizer, debug=debug)
+
+
+if __name__ == "__main__":
+    app()
