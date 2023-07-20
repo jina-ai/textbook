@@ -15,8 +15,11 @@ class StarCoderBase(GPTBigCodeForCausalLM):
     def __init__(self):
         super().__init__(self.config)
 
-    def get_tokenizer(self) -> PreTrainedTokenizer:
-        return cast(PreTrainedTokenizer, AutoTokenizer("bigcode/starcoder"))
+    @staticmethod
+    def get_tokenizer() -> PreTrainedTokenizer:
+        return cast(
+            PreTrainedTokenizer, AutoTokenizer.from_pretrained("bigcode/starcoder")
+        )
 
 
 class StarCoderTest(StarCoderBase):
