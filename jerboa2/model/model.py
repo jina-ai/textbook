@@ -17,9 +17,10 @@ class StarCoderBase(GPTBigCodeForCausalLM):
 
     @staticmethod
     def get_tokenizer() -> PreTrainedTokenizer:
-        return cast(
-            PreTrainedTokenizer, AutoTokenizer.from_pretrained("bigcode/starcoder")
-        )
+        tokenizer = AutoTokenizer.from_pretrained("bigcode/starcoder")
+        tokenizer.padding_side = "left"  # Allow batched inference
+        tokenizer.pad_token = tokenizer.eos_token
+        return cast(PreTrainedTokenizer, tokenizer)
 
 
 class StarCoderTest(StarCoderBase):
