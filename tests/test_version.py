@@ -1,4 +1,4 @@
-from jerboa2 import __version__
+from textbook import __version__
 
 
 def test_version():

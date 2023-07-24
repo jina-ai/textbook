@@ -1,4 +1,4 @@
-from jerboa2.train import train
+from textbook.train import train
 
 
 def test_train():

@@ -1,4 +1,4 @@
-from jerboa2.model.model import StarCoderTest
+from textbook.model.model import StarCoderTest
 
 
 def test_star_coder_init():

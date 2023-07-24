@@ -1,7 +1,7 @@
 import pytest
 
-from jerboa2.dataset import TinyStoriesDataset
-from jerboa2.model.model import StarCoderBase
+from textbook.dataset import TinyStoriesDataset
+from textbook.model.model import StarCoderBase
 
 from transformers import PreTrainedTokenizer
 

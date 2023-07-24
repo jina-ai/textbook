@@ -1,12 +1,12 @@
 import functools
 from typing import Optional, Dict
 
-from jerboa2.dataset import TinyStoriesDataset
+from textbook.dataset import TinyStoriesDataset
 
 import torch
 import transformers
 import tempfile
-from jerboa2.model.model import StarCoderTest, StarCoderTiny
+from textbook.model.model import StarCoderTest, StarCoderTiny
 
 from typer import Typer
 

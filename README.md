@@ -1,3 +1,3 @@
-# Jerboa2
+# textbook
 
 pretraining
