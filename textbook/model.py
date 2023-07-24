@@ -35,10 +35,10 @@ class ReplitBase:
 
 
 class ReplitDebug(ReplitBase):
-    AutoConfig.from_pretrained(
+    config = AutoConfig.from_pretrained(
         "replit/replit-code-v1-3b",
         trust_remote_code=True,
         torch_dtype=torch.bfloat16,
         init_device="cuda",
-        n_layer=1,
+        n_layers=1,
     )
