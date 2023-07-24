@@ -1,5 +1,7 @@
 from typing import Protocol
-from datasets import load_dataset, Dataset
+import random
+
+from datasets import Dataset
 from transformers import PreTrainedTokenizer
 
 
@@ -15,7 +17,14 @@ class CustomDataset(Protocol):
         ...
 
 
-class TinyStoriesDataset:
+class DummyDataset:
+    @staticmethod
+    def gen(n: int = 10, upper_bound: int = 512):
+
+        for _ in range(n):
+            random_integer = random.randint(1, upper_bound)
+            yield {"text": "hello world" * random_integer}
+
     def __init__(
         self,
         tokenizer: PreTrainedTokenizer,
@@ -23,8 +32,7 @@ class TinyStoriesDataset:
     ):
         self.debug = debug
 
-        split = "train[:2%]" if debug else "train"
-        dataset = load_dataset("skeskinen/TinyStories-GPT4", split=split)
+        dataset = Dataset.from_generator(self.gen)
 
         if debug:
             dataset = dataset.select(range(10))
@@ -52,7 +60,7 @@ class TinyStoriesDataset:
     def _get_tokenize_fn(tokenizer: PreTrainedTokenizer):
         def tokenize_fn(input):
             return tokenizer(
-                input["story"],
+                input["text"],
             )
 
         return tokenize_fn

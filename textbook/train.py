@@ -1,7 +1,7 @@
 import functools
 from typing import Optional, Dict
 
-from textbook.dataset import TinyStoriesDataset
+from textbook.dataset import DummyDataset
 
 import torch
 import transformers
@@ -43,7 +43,7 @@ def train(
     replit = ReplitDebug() if debug else ReplitBase()
     model = torch.compile(replit.model)
     tokenizer = model.tokenizer
-    dataset = TinyStoriesDataset(tokenizer=tokenizer, debug=debug)
+    dataset = DummyDataset(tokenizer=tokenizer, debug=debug)
 
     if debug:
         wandb_run_name = "debug"
