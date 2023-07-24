@@ -1,5 +1,11 @@
 import torch
-from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedModel, AutoConfig
+from transformers import (
+    AutoTokenizer,
+    PreTrainedTokenizer,
+    AutoConfig,
+    PreTrainedModel,
+    AutoModelForCausalLM,
+)
 
 
 class ReplitBase:
@@ -16,8 +22,8 @@ class ReplitBase:
 
     def __init__(self):
         self._init_tokenizer()
-        self.model = PreTrainedModel.from_pretrained(
-            self.base_model, config=self.config
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.base_model, config=self.config, trust_remote_code=True
         )
 
     def _init_tokenizer(self):

@@ -19,7 +19,7 @@ class CustomDataset(Protocol):
 
 class DummyDataset:
     @staticmethod
-    def gen(n: int = 10, upper_bound: int = 512):
+    def gen(n: int = 100, upper_bound: int = 512):
         for _ in range(n):
             random_integer = random.randint(1, upper_bound)
             yield {"text": "hello world" * random_integer}

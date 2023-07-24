@@ -3,7 +3,6 @@ from typing import Optional, Dict
 
 from textbook.dataset import DummyDataset
 
-import torch
 import transformers
 import tempfile
 from textbook.model import ReplitBase, ReplitDebug
@@ -41,8 +40,9 @@ def train(
     debug: bool = False,
 ):
     replit = ReplitDebug() if debug else ReplitBase()
-    model = torch.compile(replit.model)
-    tokenizer = model.tokenizer
+    # model = torch.compile(replit.model)
+    model = replit.model
+    tokenizer = replit.tokenizer
     dataset = DummyDataset(tokenizer=tokenizer, debug=debug)
 
     if debug:
@@ -80,6 +80,7 @@ def train(
             load_best_model_at_end=False,
             report_to="wandb" if wandb else "none",
             run_name=wandb_run_name if wandb else None,
+            remove_unused_columns=False,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
             tokenizer, mlm=False
