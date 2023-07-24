@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "jerboa2"
+name = "textbook"
 version = "0.1.0"
 description = ""
-authors = ["samsja <sami.jaghouar@gmail.com>"]
+authors = ["Jina ai"]
 license = "apache 2.0"
 readme = "README.md"
 
