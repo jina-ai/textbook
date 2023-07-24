@@ -14,7 +14,6 @@ class CustomDataset(Protocol):
     ):
         ...
 
-
 class TinyStoriesDataset:
     def __init__(
         self,

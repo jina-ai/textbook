@@ -6,7 +6,7 @@ from textbook.dataset import TinyStoriesDataset
 import torch
 import transformers
 import tempfile
-from textbook.model.model import StarCoderTest, StarCoderTiny
+from textbook.model import ReplitBase, ReplitDebug
 
 from typer import Typer
 
@@ -40,9 +40,9 @@ def train(
     wandb_project: str = "textbook",
     debug: bool = False,
 ):
-    model = StarCoderTest() if debug else StarCoderTiny()
-    model = torch.compile(model)
-    tokenizer = model.get_tokenizer()
+    replit = ReplitDebug() if debug else ReplitBase()
+    model = torch.compile(replit.model)
+    tokenizer = model.tokenizer
     dataset = TinyStoriesDataset(tokenizer=tokenizer, debug=debug)
 
     if debug:
