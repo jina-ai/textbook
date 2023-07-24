@@ -37,7 +37,7 @@ def train(
     output_dir: Optional[str] = None,
     wandb_run_name: str = "",
     wandb: bool = False,
-    wandb_project: str = "tiny_stories",
+    wandb_project: str = "textbook",
     debug: bool = False,
 ):
     model = StarCoderTest() if debug else StarCoderTiny()
