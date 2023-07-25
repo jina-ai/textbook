@@ -16,14 +16,16 @@ class ReplitBase:
     config = AutoConfig.from_pretrained(
         "replit/replit-code-v1-3b",
         trust_remote_code=True,
-        torch_dtype=torch.bfloat16,
         init_device="cuda",
     )
 
     def __init__(self):
         self._init_tokenizer()
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.base_model, config=self.config, trust_remote_code=True
+            self.base_model,
+            config=self.config,
+            trust_remote_code=True,
+            torch_dtype=torch.float16,
         )
 
     def _init_tokenizer(self):
@@ -38,7 +40,6 @@ class ReplitDebug(ReplitBase):
     config = AutoConfig.from_pretrained(
         "replit/replit-code-v1-3b",
         trust_remote_code=True,
-        torch_dtype=torch.bfloat16,
         init_device="cuda",
         n_layers=1,
     )
