@@ -9,7 +9,7 @@ from textbook.model import ReplitBase, ReplitDebug
 
 from typer import Typer
 
-app = Typer(pretty_exceptions_enable=False)
+app = Typer()
 
 
 config_to_log: Dict = {}
@@ -37,7 +37,6 @@ def train(
     wandb_run_name: str = "",
     wandb: bool = False,
     wandb_project: str = "textbook",
-    local_rank: int = 0,
     debug: bool = False,
 ):
     replit = ReplitDebug() if debug else ReplitBase()
