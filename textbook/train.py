@@ -8,8 +8,9 @@ import tempfile
 from textbook.model import ReplitBase, ReplitDebug
 
 from typer import Typer
+import wandb
 
-app = Typer()
+app = Typer(pretty_exceptions_enable=False)
 
 
 config_to_log: Dict = {}
@@ -35,7 +36,7 @@ def train(
     learning_rate: float = 3e-4,
     output_dir: Optional[str] = None,
     wandb_run_name: str = "",
-    wandb: bool = False,
+    use_wandb: bool = False,
     wandb_project: str = "textbook",
     debug: bool = False,
 ):
@@ -57,7 +58,7 @@ def train(
         output_dir = tempfile.mkdtemp()
         print(f"temp folder : {output_dir}")
 
-    if wandb:
+    if use_wandb:
         wandb.init(wandb_project, **dict(config=config_to_log))
 
     trainer = transformers.Trainer(
@@ -78,8 +79,8 @@ def train(
             output_dir=output_dir,
             save_total_limit=3,
             load_best_model_at_end=False,
-            report_to="wandb" if wandb else "none",
-            run_name=wandb_run_name if wandb else None,
+            report_to="wandb" if use_wandb else "none",
+            run_name=wandb_run_name if use_wandb else None,
             remove_unused_columns=False,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
