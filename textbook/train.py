@@ -1,6 +1,8 @@
 import functools
 from typing import Optional, Dict
 
+from typing import Annotated
+
 from textbook.dataset import DummyDataset
 
 import transformers
@@ -8,7 +10,7 @@ import tempfile
 from textbook.model import ReplitBase, ReplitDebug
 
 from typer import Typer
-import wandb
+import typer
 
 app = Typer(pretty_exceptions_enable=False)
 
@@ -38,6 +40,8 @@ def train(
     wandb_run_name: str = "",
     use_wandb: bool = False,
     wandb_project: str = "textbook",
+    local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
+    deepspeed: Optional[str] = None,
     debug: bool = False,
 ):
     replit = ReplitDebug() if debug else ReplitBase()
@@ -58,8 +62,8 @@ def train(
         output_dir = tempfile.mkdtemp()
         print(f"temp folder : {output_dir}")
 
-    if use_wandb:
-        wandb.init(wandb_project, **dict(config=config_to_log))
+    # if use_wandb:
+    #    wandb.init(wandb_project, **dict(config=config_to_log))
 
     trainer = transformers.Trainer(
         model=model,
@@ -82,6 +86,7 @@ def train(
             report_to="wandb" if use_wandb else "none",
             run_name=wandb_run_name if use_wandb else None,
             remove_unused_columns=False,
+            deepspeed=deepspeed,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(
             tokenizer, mlm=False

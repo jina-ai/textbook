@@ -24,7 +24,6 @@ class ReplitBase:
             self.base_model,
             config=self.config,
             trust_remote_code=True,
-            # torch_dtype=torch.float16,
         )
 
     def _init_tokenizer(self):
