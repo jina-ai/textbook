@@ -1,6 +1,8 @@
+from concurrent.futures import ThreadPoolExecutor
 from math import e, exp
 import random
 from sre_constants import SUCCESS
+import threading
 import time
 
 from typing import List, Protocol, Tuple
@@ -46,29 +48,42 @@ class MonkeyGenerator():
         
         return "monkey" * int(seed/10)
     
-    
-def mass_generation(prompts: List[str], generator: Generator, n: int = 1, retries: int = 10) -> List[Tuple[str, str]]:
 
-    return_results: List[Tuple[str, str]] = []
-    with Progress() as progress:
-        task = progress.add_task("[red]Generating...", total=len(prompts)*n)
-        for prompt in prompts:
-            
-            succes = False
-            for i in range(retries):
-                try:
-                    results =  generator.generate(prompt)
-                    succes = True
-                except GenerationError:
-                    print(f"Generation failed for prompt {prompt}, retrying {i+1}/{retries}")
-                else:
-                    break
-            
-            if succes:
-                return_results.append( (prompt, results))
+def generation(prompt: str, generator: Generator, retries: int = 10) -> Tuple[str, str]:
+
+        succes = False
+        for i in range(retries):
+            try:
+                results =  generator.generate(prompt)
+                succes = True
+            except GenerationError:
+                print(f"Generation failed for prompt {prompt}, retrying {i+1}/{retries}")
             else:
-                print(f"Generation failed for prompt {prompt}, skipping")
+                break
+        
+        if succes:
+            return (prompt, results)
+        else:
+            print(f"Generation failed for prompt {prompt}, skipping")
+            return (prompt, "")
 
-            progress.advance(task)
 
-    return return_results
+def mass_generation(prompts: List[str], generator: Generator, pool_size: int =10, retries: int = 10) -> List[Tuple[str, str]]:
+
+    results = []
+    with Progress() as progress:
+
+        with ThreadPoolExecutor(max_workers=pool_size) as executor:
+            
+            task = progress.add_task("[red]Generating...", total=len(prompts))
+            futures = []
+            for i in range(len(prompts)):  # call API 10 times
+                futures.append(executor.submit(generation, prompts[i], generator, retries=retries))
+            for future in futures:
+                result = future.result()
+                progress.update(task, advance=1)
+                results.append(result)
+
+    return results
+
+

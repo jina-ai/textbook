@@ -1,5 +1,5 @@
 from networkx import rescale_layout
-from textbook.dataset_gen import OpenAIGenerator, mass_generation, MonkeyGenerator
+from textbook.dataset_gen import OpenAIGenerator, mass_generation,generation, MonkeyGenerator
 
 import pytest
 from unittest.mock import Mock, patch
@@ -32,9 +32,19 @@ def test_mass_generation(mocker):
     assert len(results) == 2
 
 
+def test_generation_monkey_generator():
+
+    generator = MonkeyGenerator(speed=-1)
+
+    prompts = ["Hello world", "Goodbye world"] * 20
+    results = generation(prompts, generator)
+
+
 def test_mass_generation_monkey_generator():
 
     generator = MonkeyGenerator(speed=-1)
 
     prompts = ["Hello world", "Goodbye world"] * 20
     results = mass_generation(prompts, generator)
+
+    assert len(results) == 40
