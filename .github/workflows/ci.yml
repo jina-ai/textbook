@@ -47,7 +47,7 @@ jobs:
 # run all tests
   run-training-test:
     needs: [check-black, lint-ruff]
-    runs-on: ubuntu-20.04
+    runs-on: [self-hosted, x64, gpu, linux]
     strategy:
       fail-fast: false
     steps:
@@ -71,7 +71,7 @@ jobs:
 
   run-dataset-gen-test:
     needs: [check-black, lint-ruff]
-    runs-on: [self-hosted, x64, gpu, linux]
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
     steps:
