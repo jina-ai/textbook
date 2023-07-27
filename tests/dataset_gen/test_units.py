@@ -2,7 +2,6 @@ import json
 from textbook.dataset_gen.dataset_gen import OpenAIGenerator, load_prompts, mass_generation,generation, MonkeyGenerator, write_results_to_jsonl
 
 import pytest
-from unittest.mock import Mock, patch
 
 
 def mock_openai(mocker):
@@ -37,7 +36,7 @@ def test_generation_monkey_generator():
     generator = MonkeyGenerator(speed=-1)
 
     prompts = ["Hello world", "Goodbye world"] * 20
-    results = generation(prompts, generator)
+    generation(prompts, generator)
 
 
 def test_mass_generation_monkey_generator():

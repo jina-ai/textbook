@@ -1,9 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 import json
-from math import e, exp
 import random
-from sre_constants import SUCCESS
-import threading
 import time
 
 from typing import List, Protocol, Tuple

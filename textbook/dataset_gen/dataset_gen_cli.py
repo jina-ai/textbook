@@ -1,4 +1,3 @@
-from tempfile import TemporaryFile
 from typing import Optional
 from typer import Typer
 
