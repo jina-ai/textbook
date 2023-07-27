@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import json
 from math import e, exp
 import random
 from sre_constants import SUCCESS
@@ -87,3 +88,10 @@ def mass_generation(prompts: List[str], generator: Generator, pool_size: int =10
     return results
 
 
+
+def load_prompts(file: str, key_promot="prompt") -> List[str]:
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    prompts = [json.loads(line)[key_promot] for line in lines]
+    return prompts

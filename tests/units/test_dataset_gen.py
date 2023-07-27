@@ -1,5 +1,6 @@
 from networkx import rescale_layout
-from textbook.dataset_gen import OpenAIGenerator, mass_generation,generation, MonkeyGenerator
+from torch import le
+from textbook.dataset_gen.dataset_gen import OpenAIGenerator, load_prompts, mass_generation,generation, MonkeyGenerator
 
 import pytest
 from unittest.mock import Mock, patch
@@ -48,3 +49,11 @@ def test_mass_generation_monkey_generator():
     results = mass_generation(prompts, generator)
 
     assert len(results) == 40
+
+
+
+def test_load_prompts():
+    prompts = load_prompts("tests/data/prompts_debug.jsonl")
+    assert len(prompts) == 5
+    
+    
