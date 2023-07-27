@@ -37,6 +37,6 @@ bash <(curl -Ls https://raw.githubusercontent.com/jina-ai/textbook/main/setup_vm
 
 ## Generating Dataset
 
-```python 
+```shell 
 python textbook/dataset_gen/dataset_gen_cli.py --pool-size 10 "tests/data/prompts_debug.jsonl"
 ```
