@@ -1,11 +1,12 @@
-from textbook.dataset_gen.dataset_gen import OpenAIGenerator, load_prompts, mass_generation,generation, MonkeyGenerator
+import json
+from textbook.dataset_gen.dataset_gen import OpenAIGenerator, load_prompts, mass_generation,generation, MonkeyGenerator, write_results_to_jsonl
 
 import pytest
 from unittest.mock import Mock, patch
 
 
 def mock_openai(mocker):
-    mocker.patch("textbook.dataset_gen.OpenAIGenerator.generate", return_value="Hello world WORLDDDDDDDDDDD")
+    mocker.patch("textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate", return_value="Hello world WORLDDDDDDDDDDD")
 
 @pytest.mark.openai
 def test_generation():
@@ -54,4 +55,20 @@ def test_load_prompts():
     prompts = load_prompts("tests/data/prompts_debug.jsonl")
     assert len(prompts) == 5
 
-    
+
+def test_save_results(tmp_path):
+
+    results= [("Hello world", "Hello world WORLDDDDDDDDDDD"), ("Goodbye world", "Goodbye world WORLDDDDDDDDDDD")]
+    file = f"{tmp_path}/results.jsonl"
+    write_results_to_jsonl(file, results)
+
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    prompts = [json.loads(line) for line in lines]
+
+    assert len(prompts) == 2
+    assert prompts[0]["prompt"] == "Hello world"
+    assert prompts[0]["generated"] == "Hello world WORLDDDDDDDDDDD"
+    assert prompts[1]["prompt"] == "Goodbye world"
+    assert prompts[1]["generated"] == "Goodbye world WORLDDDDDDDDDDD"

@@ -12,6 +12,9 @@ import openai
 from rich.progress import Progress
 
 
+
+Results = Tuple[str, str]
+
 class Generator(Protocol):
 
     def generate(self, prompt: str) -> str:
@@ -50,7 +53,7 @@ class MonkeyGenerator():
         return "monkey" * int(seed/10)
     
 
-def generation(prompt: str, generator: Generator, retries: int = 10) -> Tuple[str, str]:
+def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
 
         succes = False
         for i in range(retries):
@@ -69,7 +72,7 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Tuple[st
             return (prompt, "")
 
 
-def mass_generation(prompts: List[str], generator: Generator, pool_size: int =10, retries: int = 10) -> List[Tuple[str, str]]:
+def mass_generation(prompts: List[str], generator: Generator, pool_size: int =10, retries: int = 10) -> List[Results]:
 
     results = []
     with Progress() as progress:
@@ -95,3 +98,10 @@ def load_prompts(file: str, key_promot="prompt") -> List[str]:
 
     prompts = [json.loads(line)[key_promot] for line in lines]
     return prompts
+
+
+def write_results_to_jsonl(file_path: str, results: List[Results]):
+    with open(file_path, 'w') as file:
+        for item in results:
+            json.dump({"prompt": item[0], "generated": item[1]}, file)
+            file.write('\n')
