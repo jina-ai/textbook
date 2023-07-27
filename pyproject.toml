@@ -18,6 +18,7 @@ datasets = "^2.13.1"
 accelerate = "^0.21.0"
 sentencepiece = "^0.1.99"
 einops = "^0.6.1"
+openai = "^0.27.8"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -29,6 +30,7 @@ pre-commit = ">=3.3.2"
 jupyterlab = ">=4.0.0"
 jupyterlab-code-formatter = ">=2.2.1"
 mypy = ">=1"
+pytest-mock = ">=3.11.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -44,4 +46,5 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "openai: need openai key ",
 ]
