@@ -5,10 +5,8 @@ The self-checking relies on:
 2. execute the simple unit test using `openai/human-eval` repository
 
 ## Setup
-Install the `textbook/self_check/requirements.txt` file:
-```shell
-pip install -r textbook/self_check/requirements.txt
-```
+1. Install langchain: `pip install langchain`
+2. Install openai from source: `git clone https://github.com/openai/human-eval && pip install -e human-eval`
 
 You also need to setup an `OPENAI_API_KEY` in the environment variables.
 
@@ -47,3 +45,5 @@ print(self_check_problem(prompt=prompt, completion=completion))
 
 **Note**: the first time you run the utility function, it will fail because OpenAI human eval includes a comment to warn you about running the evaluation script.
 The stacktrace should point you to that line, simply uncomment it in the human_eval library's source code and run again.
+
+**Note**: if you are using Mac, refer to the following issue: https://github.com/openai/human-eval/issues/18#issuecomment-1568137706
