@@ -12,7 +12,7 @@ poetry shell
 pip install torch
 ```
 
-## run the code
+## Training  
 
 
 Single gpu run
@@ -33,3 +33,10 @@ deepspeed --num_gpus=2 textbook/train.py --deepspeed ds_config.json --epochs 2 -
 ## setup runpod
 
 bash <(curl -Ls https://raw.githubusercontent.com/jina-ai/textbook/main/setup_vm.sh)
+
+
+## Generating Dataset
+
+```python 
+python textbook/dataset_gen/dataset_gen_cli.py --pool-size 10 "tests/data/prompts_debug.jsonl"
+```
