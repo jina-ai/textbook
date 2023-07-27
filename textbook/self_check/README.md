@@ -45,3 +45,5 @@ print(self_check_problem(prompt=prompt, completion=completion))
 {'passed': True, 'result': 'passed'}
 ```
 
+**Note**: the first time you run the utility function, it will fail because OpenAI human eval includes a comment to warn you about running the evaluation script.
+The stacktrace should point you to that line, simply uncomment it in the human_eval library's source code and run again.
