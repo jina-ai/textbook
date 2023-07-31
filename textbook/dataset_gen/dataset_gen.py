@@ -92,11 +92,11 @@ def mass_generation(
     return results
 
 
-def load_prompts(file: str, key_promot="prompt") -> List[str]:
+def load_prompts(file: str, key_prompt="prompt") -> List[str]:
     with open(file, "r") as f:
         lines = f.readlines()
 
-    prompts = [json.loads(line)[key_promot] for line in lines]
+    prompts = [json.loads(line)[key_prompt] for line in lines]
     return prompts
 
 
