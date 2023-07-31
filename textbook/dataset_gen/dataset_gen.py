@@ -52,17 +52,17 @@ class MonkeyGenerator:
 
 
 def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
-    succes = False
+    success = False
     for i in range(retries):
         try:
             results = generator.generate(prompt)
-            succes = True
+            success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i+1}/{retries}")
         else:
             break
 
-    if succes:
+    if success:
         return (prompt, results)
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
