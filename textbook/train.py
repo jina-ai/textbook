@@ -3,6 +3,8 @@ from typing import Optional, Dict
 
 from typing import Annotated
 
+import torch
+
 from textbook.dataset import DummyDataset
 
 import transformers
@@ -11,6 +13,7 @@ from textbook.model import ReplitBase, ReplitDebug
 
 from typer import Typer
 import typer
+import wandb
 
 app = Typer(pretty_exceptions_enable=False)
 
@@ -45,7 +48,7 @@ def train(
     debug: bool = False,
 ):
     replit = ReplitDebug() if debug else ReplitBase()
-    # model = torch.compile(replit.model)
+    model = torch.compile(replit.model)
     model = replit.model
     tokenizer = replit.tokenizer
     dataset = DummyDataset(tokenizer=tokenizer, debug=debug)
@@ -62,8 +65,8 @@ def train(
         output_dir = tempfile.mkdtemp()
         print(f"temp folder : {output_dir}")
 
-    # if use_wandb:
-    #    wandb.init(wandb_project, **dict(config=config_to_log))
+    if local_rank == 0 and use_wandb:
+        wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
 
     trainer = transformers.Trainer(
         model=model,
