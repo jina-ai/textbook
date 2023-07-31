@@ -1,15 +1,16 @@
 import functools
-from typing import Optional, Dict
+from importlib import import_module
+from typing import Literal, Optional, Dict
 
 from typing import Annotated
 
 import torch
 
 from textbook.dataset import DummyDataset
+from textbook.model import BaseModule
 
 import transformers
 import tempfile
-from textbook.model import Replit, ReplitDebug
 
 from typer import Typer
 import typer
@@ -35,6 +36,7 @@ def log_args(func):
 @log_args
 def train(
     *,
+    module: Literal["Replit", "StarCoder"] = "Replit",
     epochs: int = 1,
     micro_batch_size: int = 1,
     batch_size: int = 1,
@@ -47,10 +49,12 @@ def train(
     deepspeed: Optional[str] = None,
     debug: bool = False,
 ):
-    replit = ReplitDebug() if debug else Replit()
-    model = torch.compile(replit.model)
-    model = replit.model
-    tokenizer = replit.tokenizer
+    module_cls: BaseModule = getattr(import_module("textbook.model"), module)
+
+    module_instance = module_cls(debug=debug)
+    model = torch.compile(module_instance.model)
+    model = module_instance.model
+    tokenizer = module_instance.tokenizer
     dataset = DummyDataset(tokenizer=tokenizer, debug=debug)
 
     if debug:

@@ -61,7 +61,7 @@ class StarCoder:
     debug_config = GPTBigCodeConfig.from_pretrained(
         "bigcode/starcoderbase-1b",
         init_device="cuda",
-        n_layers=1,
+        n_layer=1,
     )
 
     def __init__(self, debug: bool = False):
