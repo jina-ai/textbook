@@ -15,7 +15,7 @@ class BaseModule(Protocol):
     model: PreTrainedModel
 
 
-class ReplitBase:
+class Replit:
     tokenizer: PreTrainedTokenizer
     model: PreTrainedModel
     base_model = "replit/replit-code-v1-3b"
@@ -26,11 +26,18 @@ class ReplitBase:
         init_device="cuda",
     )
 
-    def __init__(self):
+    debug_config = AutoConfig.from_pretrained(
+        "replit/replit-code-v1-3b",
+        trust_remote_code=True,
+        init_device="cuda",
+        n_layers=1,
+    )
+
+    def __init__(self, debug: bool = False):
         self._init_tokenizer()
         self.model = AutoModelForCausalLM.from_pretrained(
             self.base_model,
-            config=self.config,
+            config=self.config if not debug else self.debug_config,
             trust_remote_code=True,
         )
 
@@ -42,16 +49,7 @@ class ReplitBase:
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
 
-class ReplitDebug(ReplitBase):
-    config = AutoConfig.from_pretrained(
-        "replit/replit-code-v1-3b",
-        trust_remote_code=True,
-        init_device="cuda",
-        n_layers=1,
-    )
-
-
-class StarCoderBase:
+class StarCoder:
     tokenizer: PreTrainedTokenizer
     model: PreTrainedModel
     base_model = "bigcode/starcoderbase-1b"
@@ -60,11 +58,17 @@ class StarCoderBase:
         init_device="cuda",
     )
 
-    def __init__(self):
+    debug_config = GPTBigCodeConfig.from_pretrained(
+        "bigcode/starcoderbase-1b",
+        init_device="cuda",
+        n_layers=1,
+    )
+
+    def __init__(self, debug: bool = False):
         self._init_tokenizer()
         self.model = GPTBigCodeForCausalLM.from_pretrained(
             self.base_model,
-            config=self.config,
+            config=self.config if not debug else self.debug_config,
         )
 
     def _init_tokenizer(self):
@@ -73,11 +77,3 @@ class StarCoderBase:
         )
         self.tokenizer.padding_side = "left"  # Allow batched inference
         self.tokenizer.pad_token = self.tokenizer.eos_token
-
-
-class StarCoderDebug(StarCoderBase):
-    config = GPTBigCodeConfig.from_pretrained(
-        "bigcode/starcoderbase-1b",
-        init_device="cuda",
-        n_layers=1,
-    )

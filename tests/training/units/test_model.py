@@ -1,23 +1,23 @@
 import pytest
-from textbook.model import ReplitBase, ReplitDebug, StarCoderBase, StarCoderDebug
+from textbook.model import Replit, StarCoder
 import torch
 
 
 @pytest.mark.slow
 def test_replit_base():
-    ReplitBase()
+    Replit()
 
 
 def test_replit_debug():
-    model = ReplitDebug()
+    model = Replit(debug=True)
     assert model.model.dtype == torch.float32
 
 
 @pytest.mark.slow
 def test_starcoer_base():
-    StarCoderBase()
+    StarCoder()
 
 
 def test_starcoder_debug():
-    model = StarCoderDebug()
+    model = StarCoder(debug=True)
     assert model.model.dtype == torch.float32

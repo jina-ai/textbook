@@ -9,7 +9,7 @@ from textbook.dataset import DummyDataset
 
 import transformers
 import tempfile
-from textbook.model import ReplitBase, ReplitDebug
+from textbook.model import Replit, ReplitDebug
 
 from typer import Typer
 import typer
@@ -47,7 +47,7 @@ def train(
     deepspeed: Optional[str] = None,
     debug: bool = False,
 ):
-    replit = ReplitDebug() if debug else ReplitBase()
+    replit = ReplitDebug() if debug else Replit()
     model = torch.compile(replit.model)
     model = replit.model
     tokenizer = replit.tokenizer
