@@ -47,7 +47,6 @@ def train(
     wandb_project: str = "textbook",
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
-    dataset_size: Optional[int] = None,
     debug: bool = False,
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
