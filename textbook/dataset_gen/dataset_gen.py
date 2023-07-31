@@ -72,6 +72,9 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
 def mass_generation(
     prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
 ) -> List[Results]:
+    """
+    generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
+    """
     results = []
     with Progress() as progress:
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
