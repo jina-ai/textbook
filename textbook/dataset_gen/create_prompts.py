@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+from dataclasses import dataclass
 import pickle
 import json
 import os
@@ -9,16 +10,30 @@ from typing import List, Tuple
 import openai
 
 
-def topics_to_list(topics: str) -> List[str]:
-    return list(map(lambda x: x.split(". ")[1], topics.split("\n")))
-
+@dataclass
+class Topic:
+    topic: str
+    mixing: int
+@dataclass
+class Subtopic:
+    topic: str
+    subtopic: str
+    mixing: int
+@dataclass
+class Chapter:
+    topic: str
+    subtopic: str
+    chapter: str
+    mixing: int
 
 def create_subtopic_query(topic: str, n: int) -> str:
-    return f"For a Python textbook give me {n} subtopics of {topic}. Just provide the titles and give no explanation."
+    return f"""For a Python textbook give me {n} subtopics of {topic}. 
+    Just provide the titles and give no explanation.
+    Return the result as Python list. 
+    """
 
-
-def create_subtopics(topic: Tuple[str, int], n) -> List[Tuple[str, str, int]]:
-    query = create_subtopic_query(topic, n)
+def create_subtopics(topic: Topic, n) -> List[Subtopic]:
+    query = create_subtopic_query(topic.topic, n)
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -27,8 +42,7 @@ def create_subtopics(topic: Tuple[str, int], n) -> List[Tuple[str, str, int]]:
         ],
         temperature=1.5,
     )
-    topics_list = topics_to_list(completion.choices[0].message["content"])
-    result = [(i,) + topic for i in topics_list]
+    result = [subtopic(topic.topic, i, topic.mixing) for i in eval(completion.choices[0].message['content'])]
     return result
 
 
@@ -49,7 +63,6 @@ def create_chapters(
     return result
 
 def create_prompt(pivot_chapter: Tuple[str, str, str, int], n_combinations: str = 5) -> List[str]:
-
     random.shuffle(leaves_for_combination)
     combination_chapters = []
     for chapter in leaves_for_combination:
