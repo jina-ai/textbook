@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # Load list of topics
     API_KEY = os.environ["API_PASSWORD"]
     openai.api_key = API_KEY
-    TOPICS_PATH = "./topics.csv"
+    TOPICS_PATH = "../../tests/dataset_gen/topics.csv"
     topics = pd.read_csv(TOPICS_PATH)
     topics = topics.fillna(0)
     topics = topics.iloc[:, :3]
