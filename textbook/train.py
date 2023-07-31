@@ -1,6 +1,6 @@
 import functools
 from importlib import import_module
-from typing import Literal, Optional, Dict
+from typing import Optional, Dict, Type
 
 from typing import Annotated
 
@@ -36,7 +36,7 @@ def log_args(func):
 @log_args
 def train(
     *,
-    module: Literal["Replit", "StarCoder"] = "Replit",
+    module: str = "StarCoder",
     epochs: int = 1,
     micro_batch_size: int = 1,
     batch_size: int = 1,
@@ -47,10 +47,10 @@ def train(
     wandb_project: str = "textbook",
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
+    dataset_size: Optional[int] = None,
     debug: bool = False,
 ):
-    module_cls: BaseModule = getattr(import_module("textbook.model"), module)
-
+    module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
     model = torch.compile(module_instance.model)
     model = module_instance.model

@@ -14,6 +14,9 @@ class BaseModule(Protocol):
     tokenizer: PreTrainedTokenizer
     model: PreTrainedModel
 
+    def __init__(self, debug: bool = False):
+        ...
+
 
 class Replit:
     tokenizer: PreTrainedTokenizer
