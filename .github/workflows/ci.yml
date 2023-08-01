@@ -48,8 +48,6 @@ jobs:
   run-training-test:
     needs: [check-black, lint-ruff]
     runs-on: [self-hosted, x64, gpu, linux]
-    secrets:
-      HF_AUTH_TOKEN: "${{ secrets.HF_AUTH_TOKEN }}"
     strategy:
       fail-fast: false
     steps:
