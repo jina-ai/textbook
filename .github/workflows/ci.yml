@@ -48,6 +48,8 @@ jobs:
   run-training-test:
     needs: [check-black, lint-ruff]
     runs-on: [self-hosted, x64, gpu, linux]
+    secrets:
+      HF_AUTH_TOKEN: "${{ secrets.HF_AUTH_TOKEN }}"
     strategy:
       fail-fast: false
     steps:
@@ -62,12 +64,16 @@ jobs:
           python -m pip install -U poetry
           poetry install
           poetry run pip install torch
+          poetry run huggingface-cli login --token $HF_AUTH_TOKEN
+
 
       - name: Test
         id: test
         run: |
           poetry run pytest tests/training -m "not slow"
         timeout-minutes: 30
+      env:
+        HF_AUTH_TOKEN: ${{ secrets.HF_AUTH_TOKEN }}
 
   run-dataset-gen-test:
     needs: [check-black, lint-ruff]
