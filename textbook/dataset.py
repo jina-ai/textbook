@@ -2,12 +2,14 @@ from typing import Protocol
 import random
 
 from datasets import Dataset
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
+from transformers.data.data_collator import DataCollatorMixin
 
 
 class CustomDataset(Protocol):
     train_dataset: Dataset
     eval_dataset: Dataset
+    data_collator: DataCollatorMixin
 
     def __init__(
         self,
@@ -19,7 +21,7 @@ class CustomDataset(Protocol):
 
 class DummyDataset:
     @staticmethod
-    def gen(n: int = 100, upper_bound: int = 512):
+    def gen(n: int = 100_000, upper_bound: int = 512):
         for _ in range(n):
             random_integer = random.randint(1, upper_bound)
             yield {"text": "hello world" * random_integer}
@@ -54,6 +56,8 @@ class DummyDataset:
             num_proc=4,
             remove_columns=self.test_dataset.column_names,
         )
+
+        self.data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
 
     @staticmethod
     def _get_tokenize_fn(tokenizer: PreTrainedTokenizer):
