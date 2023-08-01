@@ -2,12 +2,10 @@ from __future__ import annotations
 import itertools
 from typing import List, Optional
 from pydantic import BaseModel
-import pickle
 import random
 import pandas as pd
 import numpy as np
 import openai
-from tqdm import tqdm
 import os
 import json
 from rich.progress import track
@@ -59,6 +57,7 @@ def create_prompt_query(topic_1: Topic, topic_2: Topic, profession: str) -> str:
     query = "\n".join([m.lstrip() for m in query.strip().split("\n")])
     return query
 
+
 def create_subtopics(topic: Topic, n: int, retries: int = 10) -> List[Topic]:
     success = False
     query = create_subtopic_query(topic.topic, n)
@@ -91,10 +90,10 @@ def create_subtopics(topic: Topic, n: int, retries: int = 10) -> List[Topic]:
 
 
 def create_prompts(
-        topic: Topic,
-        combination_options: List[Topic],
-        professions: List[str],
-        n: int,
+    topic: Topic,
+    combination_options: List[Topic],
+    professions: List[str],
+    n: int,
 ) -> List[Query]:
     random.shuffle(combination_options)
     prompts: List[Query] = []
@@ -147,19 +146,29 @@ if __name__ == "__main__":
     with open("tree/subtopics.json", "w") as outfile:
         outfile.write(subtopics_json)
 
-    subsubtopics: List[List[Topic]] = [create_subtopics(t, 5) for t in track(itertools.chain(*subtopics), description='Processing...')]
+    subsubtopics: List[List[Topic]] = [
+        create_subtopics(t, 5)
+        for t in track(itertools.chain(*subtopics), description="Processing...")
+    ]
     subsubtopics_list = list(itertools.chain(*subsubtopics))
     subsubtopics_json: str = json.dumps([x.dict() for x in subsubtopics_list])
 
     with open("tree/subsubtopicks.json", "w") as outfile:
         outfile.write(subsubtopics_json)
 
-    with open('tree/professions.json', 'r') as openfile:
+    with open("tree/professions.json", "r") as openfile:
         # Reading from json file
         professions = list(json.load(openfile))
 
-    prompts: List[List[Query]] = [create_prompts(i, combination_options=subsubtopics_list, professions=professions, n=n_combinations) for i in
-               track(itertools.chain(*subsubtopics), description='Processing...')]
+    prompts: List[List[Query]] = [
+        create_prompts(
+            i,
+            combination_options=subsubtopics_list,
+            professions=professions,
+            n=n_combinations,
+        )
+        for i in track(itertools.chain(*subsubtopics), description="Processing...")
+    ]
 
     prompts_list = list(itertools.chain(*prompts))
     prompts_json = json.dumps([p.dict() for p in prompts_list])

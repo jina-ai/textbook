@@ -73,8 +73,7 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
         else:
             break
 
-
-    if succes:
+    if success:
         return Results(prompt=prompt, exercice=results)
 
     else:
