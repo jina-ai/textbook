@@ -126,7 +126,8 @@ if __name__ == "__main__":
     topics_df = topics_df.drop("Use", axis=1)
     topics_list = list(zip(topics_df.Topic, topics_df.Mixing))
 
-    DEBUG = True
+    # Debug mode to create few prompts
+    DEBUG = False
     if DEBUG:
         n_base_topics = 5
         n_combinations = 2
