@@ -3,17 +3,26 @@ import json
 import random
 import time
 
-from typing import List, Protocol, Tuple
+from typing import List, Protocol
 
 import openai
 from rich.progress import Progress
 
+from pydantic import BaseModel
 
-Results = Tuple[str, str]
+
+class Exercice(BaseModel):
+    problem: str
+    solution: str
+
+
+class Results(BaseModel):
+    prompt: str
+    exercice: Exercice
 
 
 class Generator(Protocol):
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         ...
 
 
@@ -21,14 +30,16 @@ class OpenAIGenerator:
     def __init__(self, model: str = "gpt-3.5-turbo"):
         self.model = model
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         chat_completion = openai.ChatCompletion.create(
             model=self.model, messages=[{"role": "user", "content": "Hello world"}]
         )
-        return chat_completion.choices[0].message.contentss
+        return Exercice(
+            problem=chat_completion.choices[0].message.contentss, solution=""
+        )  # todo implement spliting mechanism
 
 
-class GenerationError(RuntimeError):
+class GenerationError(Exception):
     ...
 
 
@@ -40,7 +51,7 @@ class MonkeyGenerator:
     def __init__(self, speed: int = 2):
         self.speed = speed
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         seed = random.randint(0, 100)
 
         if self.speed > 0:
@@ -48,7 +59,7 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return "monkey" * int(seed / 10)
+        return Exercice(problem="def f(x,y):", solution="monkey" * int(seed / 10))
 
 
 def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
@@ -63,10 +74,10 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
             break
 
     if succes:
-        return (prompt, results)
+        return Results(prompt=prompt, exercice=results)
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return (prompt, "")
+        return Results(prompt=prompt, exercice=Exercice(problem="", solution=""))
 
 
 def mass_generation(
@@ -103,5 +114,5 @@ def load_prompts(file: str, key_promot="prompt") -> List[str]:
 def write_results_to_jsonl(file_path: str, results: List[Results]):
     with open(file_path, "w") as file:
         for item in results:
-            json.dump({"prompt": item[0], "generated": item[1]}, file)
+            json.dump(item.dict(), file)
             file.write("\n")
