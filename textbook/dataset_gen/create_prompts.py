@@ -114,7 +114,7 @@ def create_prompts(
 if __name__ == "__main__":
     # Load list of topics
     API_KEY = os.environ["API_PASSWORD"]
-    TOPICS_PATH = "../../tests/dataset_gen/topics.csv"
+    TOPICS_PATH = "tree/topics.csv"
     openai.api_key = API_KEY
 
     topics = pd.read_csv(TOPICS_PATH)
