@@ -98,7 +98,6 @@ def train(
             report_to="wandb" if use_wandb else "none",
             run_name=wandb_run_name if use_wandb else None,
             remove_unused_columns=False,
-            deepspeed=deepspeed,
         ),
         data_collator=dataset.data_collator,
     )

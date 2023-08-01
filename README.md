@@ -21,6 +21,13 @@ Single gpu run
 python textbook/train.py --epochs 2 --micro-batch-size 4 --batch-size 128 --learning-rate 1e-4
 ```
 
+a100 run :
+
+
+```cmd
+python textbook/train.py --module StarCoder --epochs 1 --micro-batch-size 8 --batch-size 128 --wandb-project textbook_debug --use-wandb --no-wandb-log-model
+```
+
 Multiple GPU run
 
 
