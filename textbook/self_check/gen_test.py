@@ -51,7 +51,7 @@ def check(candidate):
 ### test
 '''
 
-llm = OpenAI(temperature=0.9, model_name='gpt-3.5-turbo')
+llm = OpenAI(temperature=0.9, model_name="gpt-3.5-turbo")
 prompt = PromptTemplate(
     input_variables=["func_implementation"],
     template=template,
@@ -63,14 +63,17 @@ chain = LLMChain(llm=llm, prompt=prompt)
 def gen_test(func_implementation: str):
     return chain.run(func_implementation)
 
-if __name__ == '__main__':
-    res = gen_test('''
+
+if __name__ == "__main__":
+    res = gen_test(
+        '''
     def sort_list(inp: List) -> List:
         """  sorts the list
         >>> sort_array([4, 3, 1])
         [1, 3, 4]
        """
         return sorted(inp)
-    ''')
+    '''
+    )
 
     print(res)

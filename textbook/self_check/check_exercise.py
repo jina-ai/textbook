@@ -6,6 +6,7 @@ IMPORTS = """
 from typing import *
 """
 
+
 def extract_function_name(code_str):
     pattern = r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\("
     match = re.search(pattern, code_str)
@@ -14,41 +15,41 @@ def extract_function_name(code_str):
     else:
         return None
 
+
 def self_check_problem(prompt: str, completion: str):
-    test_case = gen_test(IMPORTS + '\n' + prompt + '\n' + completion)
-    res = check_correctness(problem={
-        'task_id': 'test/0',
-        'prompt': prompt,
-        'canonical_solution': completion,
-        'entry_point': extract_function_name(prompt),
-        'test': test_case,
-    }, completion=completion, timeout=10)
+    test_case = gen_test(IMPORTS + "\n" + prompt + "\n" + completion)
+    print(test_case)
+    res = check_correctness(
+        problem={
+            "task_id": "test/0",
+            "prompt": prompt,
+            "canonical_solution": completion,
+            "entry_point": extract_function_name(prompt),
+            "test": test_case,
+        },
+        completion=completion,
+        timeout=10,
+    )
 
-    return {'passed': res.get('passed'), 'result': res.get('result')}
+    return {"passed": res.get("passed"), "result": res.get("result")}
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     prompt = '''
 from typing import List
-def valid_guessing_letters(word: str, guesses: List[str]) -> List[str]:
+def common_elements(list1: List[int], list2: List[int]) -> List[int]:
     """
-    Returns a list of valid guessing letters, which are letters that have not been guessed yet and
-    are present in the word.
+    Returns a list of common elements between two lists. 
     Parameters:
-    word (str): The word to guess.
-    guesses (List[str]): A list of letters that have already been guessed.
+    list1 (List[int]): The first list.
+    list2 (List[int]): The second list.
     Returns:
-    List[str]: A list of valid guessing letters.
+    List[int]: A list of common elements.
     """
     '''
 
-    completion = '''
-    valid_letters = []
-    for letter in word:
-        if letter not in guesses and letter not in valid_letters:
-            valid_letters.append(letter)
-    return valid_letters
-    '''
+    completion = """
+    return list(set(list1) & set(list2))
+    """
 
     print(self_check_problem(prompt=prompt, completion=completion))
