@@ -1,103 +1,115 @@
-import pandas as pd
-import random
-from dataclasses import dataclass
+from __future__ import annotations
+import itertools
+from typing import List, Optional
+from pydantic import BaseModel
 import pickle
-import json
-import os
-from tqdm import tqdm
+import random
+import pandas as pd
 import numpy as np
-from typing import List, Tuple
 import openai
+from tqdm import tqdm
+import os
+import json
+from rich.progress import track
 
 
-@dataclass
-class Topic:
+class Topic(BaseModel):
     topic: str
     mixing: int
-@dataclass
-class Subtopic:
-    topic: str
-    subtopic: str
-    mixing: int
-@dataclass
-class Chapter:
-    topic: str
-    subtopic: str
-    chapter: str
-    mixing: int
+    parent: Optional[Topic] = None
+
+
+class Exercise(BaseModel):
+    exercise: str
+    topic: Topic
+
+
+class Query(BaseModel):
+    query: str
+    topic_1: Topic
+    topic_2: Topic
+
 
 def create_subtopic_query(topic: str, n: int) -> str:
-    return f"""For a Python textbook give me {n} subtopics of {topic}. 
+    return f"""For a Python textbook give me {n} subtopics of {topic}, formatted as a Python list. 
     Just provide the titles and give no explanation.
-    Return the result as Python list. 
+    Format the result as Python list.
     """
 
-def create_subtopics(topic: Topic, n) -> List[Subtopic]:
+
+def create_prompt_query(topic_1: Topic, topic_2: Topic, profession: str) -> str:
+    query = f'''
+            Create a code completion exercise on the intersection of “{topic_1.topic}” and “{topic_2.topic}”.  
+            Write it for a {profession}. 
+
+            The exercise must be of the style: 
+
+            ```
+            def name(args):
+
+            """Docstring explaining the exercise"""
+
+            python code to solve the exercise
+            ```
+
+            NO CLASSES
+
+            MAKE IT VERY DIFFICULT
+            '''
+    query = "\n".join([m.lstrip() for m in query.strip().split("\n")])
+    return query
+
+def create_subtopics(topic: Topic, n: int, retries: int = 10) -> List[Topic]:
+    success = False
     query = create_subtopic_query(topic.topic, n)
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": query},
-        ],
-        temperature=1.5,
-    )
-    result = [subtopic(topic.topic, i, topic.mixing) for i in eval(completion.choices[0].message['content'])]
-    return result
+    print(query)
+    for i in range(retries):
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": query},
+                ],
+                temperature=1.5,
+            )
 
-
-def create_chapters(
-    subtopic: Tuple[str, str, int], n: int
-) -> List[Tuple[str, str, str, int]]:
-    query = create_subtopic_query(subtopic[0], n)
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": query},
-        ],
-        temperature=1.5,
-    )
-    topics_list = topics_to_list(completion.choices[0].message["content"])
-    result = [(i,) + subtopic for i in topics_list]
-    return result
-
-def create_prompt(pivot_chapter: Tuple[str, str, str, int], n_combinations: str = 5) -> List[str]:
-    random.shuffle(leaves_for_combination)
-    combination_chapters = []
-    for chapter in leaves_for_combination:
-        if chapter[1] != pivot_chapter[1] and chapter[2] != pivot_chapter[2]:
-            combination_chapters.append(chapter)
-
-        if len(combination_chapters) == n_combinations:
+            result = [
+                Topic(topic=i, mixing=topic.mixing, parent=topic)
+                for i in eval(completion.choices[0].message["content"])
+            ]
+            success = True
+        except Exception:
+            print(f"Generation failed for prompt, retrying {i + 1}/{retries}")
+        else:
             break
 
-    prompts = []
+    if success:
+        return result
+    else:
+        return []
 
-    for _, j in enumerate(combination_chapters):
-        topic1 = pivot_chapter[0],
-        topic2 = j[0]
-        profession = professions[np.random.randint(0, len(professions))]
 
-        query = f'''
-        Create a code completion exercise on the intersection of “{topic1}” and “{topic2}”.  Write it for a {profession}. 
+def create_prompts(
+        topic: Topic,
+        combination_options: List[Topic],
+        professions: List[str],
+        n: int,
+) -> List[Query]:
+    random.shuffle(combination_options)
+    prompts: List[Query] = []
 
-        The exercise must be of the style: 
+    for loc_topic in combination_options:
+        if len(prompts) == n:
+            break
 
-        ```
-        def name(args):
+        if loc_topic.mixing and loc_topic.parent != topic.parent:
+            profession = professions[np.random.randint(0, len(professions))]
+            query = create_prompt_query(topic, loc_topic, profession)
+            prompts.append(Query(query=query, topic_1=topic, topic_2=loc_topic))
 
-        """Docstring explaining the exercise"""
-
-        python code to solve the exercise
-        ```
-
-        NO CLASSES
-
-        MAKE IT VERY DIFFICULT
-        '''
-        prompts.append(query)
     return prompts
+
 
 if __name__ == "__main__":
     # Load list of topics
@@ -115,43 +127,40 @@ if __name__ == "__main__":
     topics_df = topics_df.drop("Use", axis=1)
     topics_list = list(zip(topics_df.Topic, topics_df.Mixing))
 
-    leaves_for_combination = []
-    subtopics_list = []
-    chapters_list = []
-    for i, topic in tqdm(enumerate(topics_list)):
-        if i > 7:
-            break
-        try:
-            subtopics = create_subtopics(topic, 10)
-            subtopics_list += subtopics
-        except Exception:
-            print(f"Failed: {topic}")
+    DEBUG = True
+    if DEBUG:
+        n_base_topics = 5
+        n_combinations = 2
+    else:
+        n_base_topics = len(topics_df)
+        n_combinations = 200
 
-    random.shuffle(subtopics_list)
-    for i, subtopic in tqdm(enumerate(subtopics_list)):
-        if i > 20:
-            break
-        try:
-            chapters = create_chapters(subtopic, 5)
-            chapters_list += chapters
-            if chapters[0][3] == 1:
-                leaves_for_combination += chapters
+    root = Topic(topic="Python", mixing=1)
+    base_topics = [
+        Topic(topic=top, mixing=mix, parent=root)
+        for (top, mix) in zip(topics_df.Topic, topics_df.Mixing)
+    ]
+    subtopics = [create_subtopics(t, 10) for t in base_topics[:n_base_topics]]
+    subtopics_list = list(itertools.chain(*subtopics))
+    subtopics_json = json.dumps([x.dict() for x in subtopics_list])
 
-        except Exception:
-            print(f"Failed: {subtopic}")
+    with open("subtopics.json", "w") as outfile:
+        outfile.write(subtopics_json)
 
-    random.shuffle(chapters_list)
+    subsubtopics = [create_subtopics(t, 5) for t in track(itertools.chain(*subtopics), description='Processing...')]
+    subsubtopics_list = list(itertools.chain(*subsubtopics))
+    subsubtopics_json: str = json.dumps([x.dict() for x in subsubtopics_list])
 
-    with open('./professions', 'rb') as f:
-        professions = pickle.load(f)
+    with open("subsubtopicks.json", "w") as outfile:
+        outfile.write(subsubtopics_json)
 
-    with open('chapters.jsonl', 'w') as f:
-        for item in chapters_list:
-            f.write(json.dumps(item) + "\n")
+    with open('professions.json', 'r') as openfile:
+        # Reading from json file
+        professions = list(json.load(openfile))
 
-    for i in range(2):
-        pivot = chapters_list[i]
-        print("###### PIVOT ##### \n", pivot[0])
-        print(create_prompt(pivot))
-
-
+    prompts = [create_prompts(i, combination_options=subsubtopics_list, professions=professions, n=n_combinations) for i in
+               track(itertools.chain(*subsubtopics), description='Processing...')]
+    prompts = list(itertools.chain(*prompts))
+    prompts = json.dumps([p.dict() for p in prompts])
+    with open("prompts.json", "w") as outfile:
+        outfile.write(prompts)
