@@ -11,13 +11,18 @@ from rich.progress import Progress
 from pydantic import BaseModel
 
 
+class Exercice(BaseModel):
+    problem: str
+    solution: str
+
+
 class Results(BaseModel):
     prompt: str
-    generated: str
+    exercice: Exercice
 
 
 class Generator(Protocol):
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         ...
 
 
@@ -25,11 +30,13 @@ class OpenAIGenerator:
     def __init__(self, model: str = "gpt-3.5-turbo"):
         self.model = model
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         chat_completion = openai.ChatCompletion.create(
             model=self.model, messages=[{"role": "user", "content": "Hello world"}]
         )
-        return chat_completion.choices[0].message.contentss
+        return Exercice(
+            problem=chat_completion.choices[0].message.contentss, solution=""
+        )  # todo implement spliting mechanism
 
 
 class GenerationError(Exception):
@@ -44,7 +51,7 @@ class MonkeyGenerator:
     def __init__(self, speed: int = 2):
         self.speed = speed
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str) -> Exercice:
         seed = random.randint(0, 100)
 
         if self.speed > 0:
@@ -52,7 +59,7 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return "monkey" * int(seed / 10)
+        return Exercice(problem="def f(x,y):", solution="monkey" * int(seed / 10))
 
 
 def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
@@ -67,10 +74,10 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
             break
 
     if succes:
-        return Results(prompt=prompt, generated=results)
+        return Results(prompt=prompt, exercice=results)
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return Results(prompt=prompt, generated="")
+        return Results(prompt=prompt, exercice=Exercice(problem="", solution=""))
 
 
 def mass_generation(

@@ -1,4 +1,5 @@
 import json
+
 from textbook.dataset_gen.dataset_gen import (
     OpenAIGenerator,
     load_prompts,
@@ -7,6 +8,7 @@ from textbook.dataset_gen.dataset_gen import (
     MonkeyGenerator,
     write_results_to_jsonl,
     Results,
+    Exercice,
 )
 
 import pytest
@@ -15,7 +17,9 @@ import pytest
 def mock_openai(mocker):
     mocker.patch(
         "textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate",
-        return_value="Hello world WORLDDDDDDDDDDD",
+        return_value=Exercice(
+            problem="def f(x,y):", solution="Hello world WORLDDDDDDDDDDD"
+        ),
     )
 
 
@@ -30,7 +34,7 @@ def test_generation_mock(mocker):
     mock_openai(mocker)
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
-    assert isinstance(gen, str)
+    assert isinstance(gen, Exercice)
 
 
 def test_mass_generation(mocker):
@@ -66,8 +70,14 @@ def test_load_prompts():
 
 def test_save_results(tmp_path):
     results = [
-        Results(prompt="Hello world", generated="Hello world WORLDDDDDDDDDDD"),
-        Results(prompt="Goodbye world", generated="Goodbye world WORLDDDDDDDDDDD"),
+        Results(
+            prompt="Hello world",
+            exercice=Exercice(problem="Hello world WORLDDDDDDDDDDD", solution=""),
+        ),
+        Results(
+            prompt="Goodbye world",
+            exercice=Exercice(problem="Goodbye world WORLDDDDDDDDDDD", solution=""),
+        ),
     ]
     file = f"{tmp_path}/results.jsonl"
     write_results_to_jsonl(file, results)
@@ -79,6 +89,6 @@ def test_save_results(tmp_path):
 
     assert len(prompts) == 2
     assert prompts[0].prompt == "Hello world"
-    assert prompts[0].generated == "Hello world WORLDDDDDDDDDDD"
+    assert prompts[0].exercice.problem == "Hello world WORLDDDDDDDDDDD"
     assert prompts[1].prompt == "Goodbye world"
-    assert prompts[1].generated == "Goodbye world WORLDDDDDDDDDDD"
+    assert prompts[1].exercice.problem == "Goodbye world WORLDDDDDDDDDDD"
