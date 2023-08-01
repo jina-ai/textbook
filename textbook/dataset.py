@@ -2,12 +2,14 @@ from typing import Protocol
 import random
 
 from datasets import Dataset
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
+from transformers.data.data_collator import DataCollatorMixin
 
 
 class CustomDataset(Protocol):
     train_dataset: Dataset
     eval_dataset: Dataset
+    data_collator: DataCollatorMixin
 
     def __init__(
         self,
@@ -54,6 +56,8 @@ class DummyDataset:
             num_proc=4,
             remove_columns=self.test_dataset.column_names,
         )
+
+        self.data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
 
     @staticmethod
     def _get_tokenize_fn(tokenizer: PreTrainedTokenizer):

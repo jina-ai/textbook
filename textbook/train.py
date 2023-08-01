@@ -100,9 +100,7 @@ def train(
             remove_unused_columns=False,
             deepspeed=deepspeed,
         ),
-        data_collator=transformers.DataCollatorForLanguageModeling(
-            tokenizer, mlm=False
-        ),
+        data_collator=dataset.data_collator,
     )
 
     trainer.train()
