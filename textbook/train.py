@@ -74,7 +74,8 @@ def train(
         output_dir = tempfile.mkdtemp()
         print(f"temp folder : {output_dir}")
 
-    if local_rank == 0 and use_wandb:
+    use_wandb = local_rank == 0 and use_wandb
+    if use_wandb:
         run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
 
     trainer = transformers.Trainer(
@@ -104,10 +105,10 @@ def train(
 
     trainer.train()
 
-    if wandb_log_model and use_wandb:
+    if use_wandb and wandb_log_model:
         artifact = wandb.Artifact(name="model_weight", type="model")
         artifact.add_dir(output_dir)
-        run.log_artifact(artifact)
+        run.log_artifact(artifact)  # type: ignore
 
 
 if __name__ == "__main__":
