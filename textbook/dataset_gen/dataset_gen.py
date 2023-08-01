@@ -3,13 +3,17 @@ import json
 import random
 import time
 
-from typing import List, Protocol, Tuple
+from typing import List, Protocol
 
 import openai
 from rich.progress import Progress
 
+from pydantic import BaseModel
 
-Results = Tuple[str, str]
+
+class Results(BaseModel):
+    prompt: str
+    generated: str
 
 
 class Generator(Protocol):
@@ -28,7 +32,7 @@ class OpenAIGenerator:
         return chat_completion.choices[0].message.contentss
 
 
-class GenerationError(RuntimeError):
+class GenerationError(Exception):
     ...
 
 
@@ -63,10 +67,10 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
             break
 
     if succes:
-        return (prompt, results)
+        return Results(prompt=prompt, generated=results)
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return (prompt, "")
+        return Results(prompt=prompt, generated="")
 
 
 def mass_generation(
@@ -103,5 +107,5 @@ def load_prompts(file: str, key_promot="prompt") -> List[str]:
 def write_results_to_jsonl(file_path: str, results: List[Results]):
     with open(file_path, "w") as file:
         for item in results:
-            json.dump({"prompt": item[0], "generated": item[1]}, file)
+            json.dump(item.dict(), file)
             file.write("\n")

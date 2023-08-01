@@ -6,6 +6,7 @@ from textbook.dataset_gen.dataset_gen import (
     generation,
     MonkeyGenerator,
     write_results_to_jsonl,
+    Results,
 )
 
 import pytest
@@ -45,7 +46,7 @@ def test_mass_generation(mocker):
 def test_generation_monkey_generator():
     generator = MonkeyGenerator(speed=-1)
 
-    prompts = ["Hello world", "Goodbye world"] * 20
+    prompts = "Hello world"
     generation(prompts, generator)
 
 
@@ -65,8 +66,8 @@ def test_load_prompts():
 
 def test_save_results(tmp_path):
     results = [
-        ("Hello world", "Hello world WORLDDDDDDDDDDD"),
-        ("Goodbye world", "Goodbye world WORLDDDDDDDDDDD"),
+        Results(prompt="Hello world", generated="Hello world WORLDDDDDDDDDDD"),
+        Results(prompt="Goodbye world", generated="Goodbye world WORLDDDDDDDDDDD"),
     ]
     file = f"{tmp_path}/results.jsonl"
     write_results_to_jsonl(file, results)
@@ -74,10 +75,10 @@ def test_save_results(tmp_path):
     with open(file, "r") as f:
         lines = f.readlines()
 
-    prompts = [json.loads(line) for line in lines]
+    prompts = [Results.parse_obj(json.loads(line)) for line in lines]
 
     assert len(prompts) == 2
-    assert prompts[0]["prompt"] == "Hello world"
-    assert prompts[0]["generated"] == "Hello world WORLDDDDDDDDDDD"
-    assert prompts[1]["prompt"] == "Goodbye world"
-    assert prompts[1]["generated"] == "Goodbye world WORLDDDDDDDDDDD"
+    assert prompts[0].prompt == "Hello world"
+    assert prompts[0].generated == "Hello world WORLDDDDDDDDDDD"
+    assert prompts[1].prompt == "Goodbye world"
+    assert prompts[1].generated == "Goodbye world WORLDDDDDDDDDDD"
