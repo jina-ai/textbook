@@ -144,23 +144,24 @@ if __name__ == "__main__":
     subtopics_list = list(itertools.chain(*subtopics))
     subtopics_json = json.dumps([x.dict() for x in subtopics_list])
 
-    with open("subtopics.json", "w") as outfile:
+    with open("tree/subtopics.json", "w") as outfile:
         outfile.write(subtopics_json)
 
     subsubtopics: List[List[Topic]] = [create_subtopics(t, 5) for t in track(itertools.chain(*subtopics), description='Processing...')]
     subsubtopics_list = list(itertools.chain(*subsubtopics))
     subsubtopics_json: str = json.dumps([x.dict() for x in subsubtopics_list])
 
-    with open("subsubtopicks.json", "w") as outfile:
+    with open("tree/subsubtopicks.json", "w") as outfile:
         outfile.write(subsubtopics_json)
 
-    with open('professions.json', 'r') as openfile:
+    with open('tree/professions.json', 'r') as openfile:
         # Reading from json file
         professions = list(json.load(openfile))
 
     prompts: List[List[Query]] = [create_prompts(i, combination_options=subsubtopics_list, professions=professions, n=n_combinations) for i in
                track(itertools.chain(*subsubtopics), description='Processing...')]
+
     prompts_list = list(itertools.chain(*prompts))
     prompts_json = json.dumps([p.dict() for p in prompts_list])
-    with open("prompts.json", "w") as outfile:
+    with open("tree/prompts.json", "w") as outfile:
         outfile.write(prompts_json)
