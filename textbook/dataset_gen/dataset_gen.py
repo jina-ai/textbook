@@ -63,18 +63,19 @@ class MonkeyGenerator:
 
 
 def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
-    succes = False
+    success = False
     for i in range(retries):
         try:
             results = generator.generate(prompt)
-            succes = True
+            success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i+1}/{retries}")
         else:
             break
 
-    if succes:
+    if success:
         return Results(prompt=prompt, exercice=results)
+
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
         return Results(prompt=prompt, exercice=Exercice(problem="", solution=""))
@@ -103,11 +104,11 @@ def mass_generation(
     return results
 
 
-def load_prompts(file: str, key_promot="prompt") -> List[str]:
+def load_prompts(file: str, key_prompt="prompt") -> List[str]:
     with open(file, "r") as f:
         lines = f.readlines()
 
-    prompts = [json.loads(line)[key_promot] for line in lines]
+    prompts = [json.loads(line)[key_prompt] for line in lines]
     return prompts
 
 
