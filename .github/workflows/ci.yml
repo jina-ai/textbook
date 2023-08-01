@@ -70,8 +70,7 @@ jobs:
         run: |
           poetry run pytest tests/training -m "not slow"
         timeout-minutes: 30
-      env:
-        HF_AUTH_TOKEN: ${{ secrets.HF_AUTH_TOKEN }}
+
 
   run-dataset-gen-test:
     needs: [check-black, lint-ruff]
