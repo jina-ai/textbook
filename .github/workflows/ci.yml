@@ -44,6 +44,22 @@ jobs:
 
         env:
           CHANGED_FILES: ${{ steps.file_changes.outputs.added_modified }}
+
+  check-mypy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.5.0
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: check mypy
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry install --all-extras
+          poetry run mypy textbook
+
 # run all tests
   run-training-test:
     needs: [check-black, lint-ruff]
@@ -62,12 +78,16 @@ jobs:
           python -m pip install -U poetry
           poetry install
           poetry run pip install torch
+          poetry run huggingface-cli login --token $HF_AUTH_TOKEN
+
 
       - name: Test
         id: test
         run: |
           poetry run pytest tests/training -m "not slow"
         timeout-minutes: 30
+    env:
+      HF_AUTH_TOKEN: ${{ secrets.HF_AUTH_TOKEN }}
 
   run-dataset-gen-test:
     needs: [check-black, lint-ruff]
@@ -95,7 +115,7 @@ jobs:
 
 # just for blocking the merge until all parallel core-test are successful
   success-all-test:
-    needs: [run-training-test, run-dataset-gen-test, check-black, lint-ruff]
+    needs: [check-mypy, run-training-test, run-dataset-gen-test, check-black, lint-ruff]
     if: always()
     runs-on: ubuntu-20.04
     steps:
