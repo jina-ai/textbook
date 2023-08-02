@@ -62,18 +62,3 @@ chain = LLMChain(llm=llm, prompt=prompt)
 
 def gen_test(func_implementation: str):
     return chain.run(func_implementation)
-
-
-if __name__ == "__main__":
-    res = gen_test(
-        '''
-    def sort_list(inp: List) -> List:
-        """  sorts the list
-        >>> sort_array([4, 3, 1])
-        [1, 3, 4]
-       """
-        return sorted(inp)
-    '''
-    )
-
-    print(res)
