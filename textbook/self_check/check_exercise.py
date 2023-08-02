@@ -18,7 +18,6 @@ def extract_function_name(code_str):
 
 def self_check_problem(prompt: str, completion: str):
     test_case = gen_test(IMPORTS + "\n" + prompt + "\n" + completion)
-    print(test_case)
     res = check_correctness(
         problem={
             "task_id": "test/0",
@@ -32,24 +31,3 @@ def self_check_problem(prompt: str, completion: str):
     )
 
     return {"passed": res.get("passed"), "result": res.get("result")}
-
-
-if __name__ == "__main__":
-    prompt = '''
-from typing import List
-def common_elements(list1: List[int], list2: List[int]) -> List[int]:
-    """
-    Returns a list of common elements between two lists. 
-    Parameters:
-    list1 (List[int]): The first list.
-    list2 (List[int]): The second list.
-    Returns:
-    List[int]: A list of common elements.
-    """
-    '''
-
-    completion = """
-    return list(set(list1) & set(list2))
-    """
-
-    print(self_check_problem(prompt=prompt, completion=completion))
