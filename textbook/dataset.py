@@ -80,7 +80,6 @@ class DummySupervisedDataset:
     @staticmethod
     def gen(n: int = 100_000, upper_bound: int = 256):
         for _ in range(n):
-
             exo = Exercice(
                 problem="hello world " * upper_bound,
                 solution="hello world" * upper_bound,
