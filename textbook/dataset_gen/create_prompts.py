@@ -154,7 +154,7 @@ if __name__ == "__main__":
     subsubtopics_list = list(itertools.chain(*subsubtopics))
     subsubtopics_json: str = json.dumps([x.dict() for x in subsubtopics_list])
 
-    with open("tree/subsubtopicks.json", "w") as outfile:
+    with open("tree/subsubtopics.json", "w") as outfile:
         outfile.write(subsubtopics_json)
 
     with open("tree/professions.json", "r") as openfile:
