@@ -48,7 +48,6 @@ class Replit:
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.base_model, trust_remote_code=True
         )
-        self.tokenizer.padding_side = "left"  # Allow batched inference
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
 
