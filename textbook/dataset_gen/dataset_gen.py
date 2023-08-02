@@ -11,18 +11,18 @@ from rich.progress import Progress
 from pydantic import BaseModel
 
 
-class Exercice(BaseModel):
+class Exercise(BaseModel):
     problem: str
     solution: str
 
 
 class Results(BaseModel):
     prompt: str
-    exercice: Exercice
+    exercice: Exercise
 
 
 class Generator(Protocol):
-    def generate(self, prompt: str) -> Exercice:
+    def generate(self, prompt: str) -> Exercise:
         ...
 
 
@@ -30,13 +30,13 @@ class OpenAIGenerator:
     def __init__(self, model: str = "gpt-3.5-turbo"):
         self.model = model
 
-    def generate(self, prompt: str) -> Exercice:
+    def generate(self, prompt: str) -> Exercise:
         chat_completion = openai.ChatCompletion.create(
             model=self.model, messages=[{"role": "user", "content": "Hello world"}]
         )
-        return Exercice(
+        return Exercise(
             problem=chat_completion.choices[0].message.contentss, solution=""
-        )  # todo implement spliting mechanism
+        )  # todo implement splitting mechanism
 
 
 class GenerationError(Exception):
@@ -45,13 +45,13 @@ class GenerationError(Exception):
 
 class MonkeyGenerator:
     """
-    A generator that failed from time to time and take a random time to respond
+    A generator with a random response time and a random failure rate
     """
 
     def __init__(self, speed: int = 2):
         self.speed = speed
 
-    def generate(self, prompt: str) -> Exercice:
+    def generate(self, prompt: str) -> Exercise:
         seed = random.randint(0, 100)
 
         if self.speed > 0:
@@ -59,7 +59,41 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return Exercice(problem="def f(x,y):", solution="monkey" * int(seed / 10))
+        return Exercise(problem="def f(x,y):", solution="monkey" * int(seed / 10))
+
+
+def split_exercises(exercises: str) -> List[str]:
+    """Split the result of the generation into seperate functions"""
+    return ['def' + i for i in exercises.split('def')[1:]]
+
+
+def check_exercise(exercise: str) -> bool:
+    try:
+        if "return" not in exercise.split('"""')[2] and "print" not in exercise.split('"""')[2]:
+            return False
+        else:
+            return True
+    except IndexError:
+        return False
+
+
+def generator_to_exercises(generation: str) -> List[Exersice]:
+    exercises = split_exercises(generation)
+    exercises = [i for i in exercises if check_exercise(i)]
+    results = []
+    for j in exercises:
+        try:
+            splitted_exercise = j.split('"""')
+            question = '"""'.join(splitted_exercise[:2]) + '"""'
+            answer = splitted_exercise[2]
+            results.append(Exercise(problem=question, solution=answer))
+        except IndexError:
+            splitted_exercise = j.split("'''")
+            question = "'''".join(splitted_exercise[:2]) + "'''"
+            answer = splitted_exercise[2]
+            results.append(Exercise(problem=question, solution=answer))
+
+    return results
 
 
 def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
@@ -69,7 +103,7 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
             results = generator.generate(prompt)
             success = True
         except GenerationError:
-            print(f"Generation failed for prompt {prompt}, retrying {i+1}/{retries}")
+            print(f"Generation failed for prompt {prompt}, retrying {i + 1}/{retries}")
         else:
             break
 
@@ -78,11 +112,11 @@ def generation(prompt: str, generator: Generator, retries: int = 10) -> Results:
 
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return Results(prompt=prompt, exercice=Exercice(problem="", solution=""))
+        return Results(prompt=prompt, exercice=Exercise(problem="", solution=""))
 
 
 def mass_generation(
-    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
+        prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
 ) -> List[Results]:
     """
     generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
@@ -104,7 +138,7 @@ def mass_generation(
     return results
 
 
-def load_prompts(file: str, key_prompt="prompt") -> List[str]:
+def load_prompts(file: str, key_prompt: str = "query") -> List[str]:
     with open(file, "r") as f:
         lines = f.readlines()
 

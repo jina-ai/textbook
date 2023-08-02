@@ -8,7 +8,7 @@ from textbook.dataset_gen.dataset_gen import (
     MonkeyGenerator,
     write_results_to_jsonl,
     Results,
-    Exercice,
+    Exercise,
 )
 
 import pytest
@@ -17,7 +17,7 @@ import pytest
 def mock_openai(mocker):
     mocker.patch(
         "textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate",
-        return_value=Exercice(
+        return_value=Exercise(
             problem="def f(x,y):", solution="Hello world WORLDDDDDDDDDDD"
         ),
     )
@@ -34,7 +34,7 @@ def test_generation_mock(mocker):
     mock_openai(mocker)
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
-    assert isinstance(gen, Exercice)
+    assert isinstance(gen, Exercise)
 
 
 def test_mass_generation(mocker):
@@ -72,11 +72,11 @@ def test_save_results(tmp_path):
     results = [
         Results(
             prompt="Hello world",
-            exercice=Exercice(problem="Hello world WORLDDDDDDDDDDD", solution=""),
+            exercice=Exercise(problem="Hello world WORLDDDDDDDDDDD", solution=""),
         ),
         Results(
             prompt="Goodbye world",
-            exercice=Exercice(problem="Goodbye world WORLDDDDDDDDDDD", solution=""),
+            exercice=Exercise(problem="Goodbye world WORLDDDDDDDDDDD", solution=""),
         ),
     ]
     file = f"{tmp_path}/results.jsonl"
