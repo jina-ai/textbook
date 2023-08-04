@@ -9,6 +9,8 @@ from textbook.dataset_gen.dataset_gen import (
     write_results_to_jsonl,
     Result,
     generator_to_exercises,
+    split_exercises,
+    check_exercise,
 )
 import numpy as np
 import pytest
@@ -95,6 +97,51 @@ def test_save_results(tmp_path):
     assert prompts[1].prompt == "Goodbye world"
     assert prompts[1].output == 'def emmentaler(): """No way jose""" return 1'
 
+def test_split_exercises():
+    input = '''
+    ```python
+    def reverse_name(name: str) -> str:
+        """Reverses the letters of a name and returns it.
+
+        >>> reverse_name("LeBron")
+        'norBeL'
+        >>> reverse_name("Curry")
+        'yrruC'
+        """
+        return name[::-1]
+
+    def reverse_words(sentence: str) -> str:
+        """Reverses the order of words in a sentence and returns it.
+
+        >>> reverse_words("I love playing basketball")
+        'basketball playing love I'
+        >>> reverse_words("Hello World!")
+        'World! Hello'
+        """
+        words = sentence.split()
+        return " ".join(words[::-1])
+
+    '''
+    assert len(split_exercises(input)) == 2
+
+def test_check_exercise():
+    good_exercise = '''
+    def cheesecake():
+        """Cheesecake is delicious.""""
+        return 0
+    '''
+    another_good_exercise = '''
+    def marmelade():
+        """Marmelade is delicious.""""
+        print("Hello world")
+    '''
+    bad_exercise = '''
+    def blubberfish():
+        """Blubberfish is delicious.""""
+    '''
+    assert check_exercise(good_exercise)
+    assert check_exercise(another_good_exercise)
+    assert not check_exercise(bad_exercise)
 
 def test_generator_to_functions():
     input = '''
