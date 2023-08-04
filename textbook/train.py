@@ -7,6 +7,7 @@ from typing import Annotated
 import torch
 
 from textbook.dataset import DummyDataset
+from textbook.evaluate import evaluate
 from textbook.model import BaseModule
 
 import transformers
@@ -51,6 +52,7 @@ def train(
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
     debug: bool = False,
+    eval_size: Optional[int] = None
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
@@ -105,7 +107,20 @@ def train(
 
     trainer.train()
 
+    accuracy_results, sample_results = evaluate(model, tokenizer, eval_size=eval_size)
+
     if use_wandb and wandb_log_model:
+        # log accuracy@k results
+        run.log(accuracy_results)
+
+        # log sample values
+        results = list(sample_results.values())
+        columns = list(results.keys())
+        results_data = [[result[key] for key in columns] for result in results]
+        eval_table = wandb.Table(columns=columns, data=results_data)
+        run.log({"Evaluation": eval_table})
+
+        # upload model weights
         artifact = wandb.Artifact(name="model_weight", type="model")
         artifact.add_dir(output_dir)
         run.log_artifact(artifact)  # type: ignore
