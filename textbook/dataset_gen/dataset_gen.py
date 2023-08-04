@@ -20,14 +20,18 @@ class Results(BaseModel):
     prompt: str
     exercice: Exercise
 
+
 def split_exercises(exercises: str) -> List[str]:
     """Split the result of the generation into seperate functions"""
-    return ['def' + i for i in exercises.split('def')[1:]]
+    return ["def" + i for i in exercises.split("def")[1:]]
 
 
 def check_exercise(exercise: str) -> bool:
     try:
-        if "return" not in exercise.split('"""')[2] and "print" not in exercise.split('"""')[2]:
+        if (
+            "return" not in exercise.split('"""')[2]
+            and "print" not in exercise.split('"""')[2]
+        ):
             return False
         else:
             return True
@@ -53,13 +57,18 @@ def generator_to_exercises(generation: str) -> List[Exercise]:
 
     return results
 
+
 class Generator(Protocol):
     def generate(self, prompt: str) -> List[Exercise]:
         ...
 
 
 class OpenAIGenerator:
-    def __init__(self, model: str = "gpt-3.5-turbo", callback: Callable = generator_to_exercises()):
+    def __init__(
+        self,
+        model: str = "gpt-3.5-turbo",
+        callback: Callable = generator_to_exercises(),
+    ):
         self.model = model
         self.callback = callback
 
@@ -94,10 +103,12 @@ class MonkeyGenerator:
         return Exercise(problem="def f(x,y):", solution="monkey" * int(seed / 10))
 
 
-
-
-
-def generation(prompt: str, generator: Generator, retries: int = 10, callback: Callable = generator_to_exercises()) -> Results:
+def generation(
+    prompt: str,
+    generator: Generator,
+    retries: int = 10,
+    callback: Callable = generator_to_exercises(),
+) -> Results:
     success = False
     for i in range(retries):
         try:
@@ -117,7 +128,7 @@ def generation(prompt: str, generator: Generator, retries: int = 10, callback: C
 
 
 def mass_generation(
-        prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
+    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
 ) -> List[Results]:
     """
     generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism

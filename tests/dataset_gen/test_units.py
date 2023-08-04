@@ -9,7 +9,7 @@ from textbook.dataset_gen.dataset_gen import (
     write_results_to_jsonl,
     Results,
     Exercise,
-    generator_to_exercises
+    generator_to_exercises,
 )
 
 import pytest
@@ -93,6 +93,7 @@ def test_save_results(tmp_path):
     assert prompts[0].exercice.problem == "Hello world WORLDDDDDDDDDDD"
     assert prompts[1].prompt == "Goodbye world"
     assert prompts[1].exercice.problem == "Goodbye world WORLDDDDDDDDDDD"
+
 
 def test_generator_to_functions():
     input = '''
