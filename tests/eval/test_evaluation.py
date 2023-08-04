@@ -16,7 +16,9 @@ def test_evaluate(monkeypatch):
     accuracy_results, results = evaluate.evaluate(
         model=replit.model,
         tokenizer=replit.tokenizer,
-        eval_file="data/example_problem.jsonl",
+        eval_file="human-eval/data/example_problem.jsonl",
     )
 
     assert accuracy_results["pass@1"] == 1
+    assert results["test/0"]["passed"]
+    assert results["test/0"]["result"] == "passed"
