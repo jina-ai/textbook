@@ -65,7 +65,7 @@ def create_subtopics(topic: Topic, n: int, retries: int = 10) -> List[Topic]:
     for i in range(retries):
         try:
             completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": query},
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     subsubtopics_list = list(itertools.chain(*subsubtopics))
     subsubtopics_json: str = json.dumps([x.dict() for x in subsubtopics_list])
 
-    with open("tree/subsubtopicks.json", "w") as outfile:
+    with open("tree/subsubtopics.json", "w") as outfile:
         outfile.write(subsubtopics_json)
 
     with open("tree/professions.json", "r") as openfile:

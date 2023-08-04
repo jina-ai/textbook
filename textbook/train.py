@@ -1,8 +1,7 @@
 import functools
 from importlib import import_module
-from typing import Optional, Dict, Type
+from typing import Optional, Dict, Type, Annotated
 
-from typing import Annotated
 
 import torch
 
