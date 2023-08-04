@@ -64,7 +64,7 @@ def test_mass_generation_monkey_generator():
 
 
 def test_load_prompts():
-    prompts = load_prompts("tests/data/prompts_debug.jsonl", 'prompt')
+    prompts = load_prompts("tests/data/prompts_debug.jsonl", "prompt")
     assert len(prompts) == 5
 
 
