@@ -9,6 +9,7 @@ from textbook.dataset_gen.dataset_gen import (
     write_results_to_jsonl,
     Result,
     generator_to_exercises,
+    feat-exercise-postprocessing
     split_exercises,
     check_exercise,
 )
@@ -96,6 +97,7 @@ def test_save_results(tmp_path):
     assert prompts[0].output == 'def gruyere(): """No way jose""" return 0'
     assert prompts[1].prompt == "Goodbye world"
     assert prompts[1].output == 'def emmentaler(): """No way jose""" return 1'
+
 
 def test_split_exercises():
     input = '''
