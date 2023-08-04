@@ -3,7 +3,7 @@ import json
 import random
 import time
 
-from typing import List, Protocol, Callable
+from typing import List, Protocol
 
 import openai
 from rich.progress import Progress
@@ -29,8 +29,8 @@ def split_exercises(output: str) -> List[str]:
 def check_exercise(exercise: str) -> bool:
     try:
         if (
-                "return" not in exercise.split('"""')[2]
-                and "print" not in exercise.split('"""')[2]
+            "return" not in exercise.split('"""')[2]
+            and "print" not in exercise.split('"""')[2]
         ):
             return False
         else:
@@ -65,9 +65,8 @@ class Generator(Protocol):
 
 class OpenAIGenerator:
     def __init__(
-            self,
-            model: str = "gpt-3.5-turbo",
-
+        self,
+        model: str = "gpt-3.5-turbo",
     ):
         self.model = model
 
@@ -75,7 +74,9 @@ class OpenAIGenerator:
         chat_completion = openai.ChatCompletion.create(
             model=self.model, messages=[{"role": "user", "content": prompt}]
         )
-        result = Result(prompt=prompt, output=chat_completion.choices[0].message.content)
+        result = Result(
+            prompt=prompt, output=chat_completion.choices[0].message.content
+        )
 
         return result
 
@@ -104,9 +105,9 @@ class MonkeyGenerator:
 
 
 def generation(
-        prompt: str,
-        generator: Generator,
-        retries: int = 10,
+    prompt: str,
+    generator: Generator,
+    retries: int = 10,
 ) -> List[Exercise]:
     success = False
     for i in range(retries):
@@ -118,7 +119,6 @@ def generation(
         else:
             break
 
-
     if success:
         exercises = generator_to_exercises(result.output)
         return exercises
@@ -129,7 +129,7 @@ def generation(
 
 
 def mass_generation(
-        prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
+    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
 ) -> List[Exercise]:
     """
     generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
