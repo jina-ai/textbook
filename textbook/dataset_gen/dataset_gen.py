@@ -67,7 +67,7 @@ class OpenAIGenerator:
     def __init__(
         self,
         model: str = "gpt-3.5-turbo",
-        callback: Callable = generator_to_exercises(),
+        callback: Callable = generator_to_exercises,
     ):
         self.model = model
         self.callback = callback
@@ -107,7 +107,6 @@ def generation(
     prompt: str,
     generator: Generator,
     retries: int = 10,
-    callback: Callable = generator_to_exercises(),
 ) -> Results:
     success = False
     for i in range(retries):
@@ -150,7 +149,7 @@ def mass_generation(
     return results
 
 
-def load_prompts(file: str, key_prompt: str = "query") -> List[str]:
+def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
     with open(file, "r") as f:
         lines = f.readlines()
 
