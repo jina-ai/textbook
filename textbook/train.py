@@ -52,7 +52,7 @@ def train(
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
     debug: bool = False,
-    eval_size: Optional[int] = None
+    eval_size: Optional[int] = None,
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
