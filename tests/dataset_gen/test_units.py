@@ -38,6 +38,8 @@ def test_generation_mock(mocker):
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
     assert isinstance(gen, Result)
+    assert gen.prompt == "Cheesecake with strawberries"
+    assert gen.output == 'def gruyere(): """No way jose""" return 0'
 
 
 def test_mass_generation(mocker):
@@ -52,7 +54,6 @@ def test_mass_generation(mocker):
 
 def test_generation_monkey_generator():
     generator = MonkeyGenerator(speed=-1, n_functions=np.random.randint(0, 100))
-
     prompts = "Hello world"
     generation(prompts, generator)
 
@@ -70,6 +71,7 @@ def test_mass_generation_monkey_generator():
 def test_load_prompts():
     prompts = load_prompts("tests/data/prompts_debug.jsonl", "prompt")
     assert len(prompts) == 5
+    assert isinstance(prompts[0], str)
 
 
 def test_save_results(tmp_path):

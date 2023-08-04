@@ -9,6 +9,7 @@ import openai
 from rich.progress import Progress
 
 from pydantic import BaseModel
+from textbook.dataset_gen.create_prompts import Query, Topic
 
 
 class Exercise(BaseModel):
