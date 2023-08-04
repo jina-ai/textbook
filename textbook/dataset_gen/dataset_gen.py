@@ -90,8 +90,9 @@ class MonkeyGenerator:
     A generator with a random response time and a random failure rate
     """
 
-    def __init__(self, speed: int = 2):
+    def __init__(self, speed: int = 2, n_functions: int = 10):
         self.speed = speed
+        self.n_functions = n_functions
 
     def generate(self, prompt: str) -> Result:
         seed = random.randint(0, 100)
@@ -101,7 +102,7 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return Result(prompt=prompt, output="monkey" * int(seed / 10))
+        return Result(prompt=prompt, output='def gorilla(): """Empty function for a gorilla""" return 0' * self.n_functions)
 
 
 def generation(
