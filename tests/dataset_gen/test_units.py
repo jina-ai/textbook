@@ -30,7 +30,7 @@ def mock_openai(mocker):
 def test_generation():
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
-    assert isinstance(gen, str)
+    assert isinstance(gen, Result)
 
 
 def test_generation_mock(mocker):
@@ -97,6 +97,7 @@ def test_save_results(tmp_path):
     assert prompts[1].prompt == "Goodbye world"
     assert prompts[1].output == 'def emmentaler(): """No way jose""" return 1'
 
+
 def test_split_exercises():
     input = '''
     ```python
@@ -124,6 +125,7 @@ def test_split_exercises():
     '''
     assert len(split_exercises(input)) == 2
 
+
 def test_check_exercise():
     good_exercise = '''
     def cheesecake():
@@ -142,6 +144,7 @@ def test_check_exercise():
     assert check_exercise(good_exercise)
     assert check_exercise(another_good_exercise)
     assert not check_exercise(bad_exercise)
+
 
 def test_generator_to_functions():
     input = '''
