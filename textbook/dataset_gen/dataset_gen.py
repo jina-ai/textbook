@@ -16,21 +16,21 @@ class Exercise(BaseModel):
     solution: str
 
 
-class Results(BaseModel):
+class Result(BaseModel):
     prompt: str
-    exercice: Exercise
+    output: str
 
 
-def split_exercises(exercises: str) -> List[str]:
-    """Split the result of the generation into seperate functions"""
-    return ["def" + i for i in exercises.split("def")[1:]]
+def split_exercises(output: str) -> List[str]:
+    """Split the result of the generation into separate functions"""
+    return ["def" + i for i in output.split("def")[1:]]
 
 
 def check_exercise(exercise: str) -> bool:
     try:
         if (
-            "return" not in exercise.split('"""')[2]
-            and "print" not in exercise.split('"""')[2]
+                "return" not in exercise.split('"""')[2]
+                and "print" not in exercise.split('"""')[2]
         ):
             return False
         else:
@@ -39,8 +39,8 @@ def check_exercise(exercise: str) -> bool:
         return False
 
 
-def generator_to_exercises(generation: str) -> List[Exercise]:
-    exercises = split_exercises(generation)
+def generator_to_exercises(output: str) -> List[Exercise]:
+    exercises = split_exercises(output)
     exercises = [i for i in exercises if check_exercise(i)]
     results = []
     for j in exercises:
@@ -59,24 +59,24 @@ def generator_to_exercises(generation: str) -> List[Exercise]:
 
 
 class Generator(Protocol):
-    def generate(self, prompt: str) -> List[Exercise]:
+    def generate(self, prompt: str) -> Result:
         ...
 
 
 class OpenAIGenerator:
     def __init__(
-        self,
-        model: str = "gpt-3.5-turbo",
-        callback: Callable = generator_to_exercises,
+            self,
+            model: str = "gpt-3.5-turbo",
+
     ):
         self.model = model
-        self.callback = callback
 
-    def generate(self, prompt: str) -> List[Exercise]:
+    def generate(self, prompt: str) -> Result:
         chat_completion = openai.ChatCompletion.create(
-            model=self.model, messages=[{"role": "user", "content": "Hello world"}]
+            model=self.model, messages=[{"role": "user", "content": prompt}]
         )
-        result = self.callback(chat_completion.choices[0].message.content)
+        result = Result(prompt=prompt, output=chat_completion.choices[0].message.content)
+
         return result
 
 
@@ -92,7 +92,7 @@ class MonkeyGenerator:
     def __init__(self, speed: int = 2):
         self.speed = speed
 
-    def generate(self, prompt: str) -> Exercise:
+    def generate(self, prompt: str) -> Result:
         seed = random.randint(0, 100)
 
         if self.speed > 0:
@@ -100,35 +100,37 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return Exercise(problem="def f(x,y):", solution="monkey" * int(seed / 10))
+        return Result(prompt=prompt, output="monkey" * int(seed / 10))
 
 
 def generation(
-    prompt: str,
-    generator: Generator,
-    retries: int = 10,
-) -> Results:
+        prompt: str,
+        generator: Generator,
+        retries: int = 10,
+) -> List[Exercise]:
     success = False
     for i in range(retries):
         try:
-            results = generator.generate(prompt)
+            result = generator.generate(prompt)
             success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i + 1}/{retries}")
         else:
             break
 
+
     if success:
-        return Results(prompt=prompt, exercice=results)
+        exercises = generator_to_exercises(result.output)
+        return exercises
 
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return Results(prompt=prompt, exercice=Exercise(problem="", solution=""))
+        return [Exercise(problem=prompt, solution="")]
 
 
 def mass_generation(
-    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
-) -> List[Results]:
+        prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
+) -> List[Exercise]:
     """
     generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
@@ -144,7 +146,7 @@ def mass_generation(
             for future in futures:
                 result = future.result()
                 progress.update(task, advance=1)
-                results.append(result)
+                results += result
 
     return results
 
@@ -157,7 +159,7 @@ def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
     return prompts
 
 
-def write_results_to_jsonl(file_path: str, results: List[Results]):
+def write_results_to_jsonl(file_path: str, results: List[Exercise]):
     with open(file_path, "w") as file:
         for item in results:
             json.dump(item.dict(), file)

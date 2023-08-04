@@ -7,7 +7,7 @@ from textbook.dataset_gen.dataset_gen import (
     generation,
     MonkeyGenerator,
     write_results_to_jsonl,
-    Results,
+    Result,
     Exercise,
 )
 
@@ -70,11 +70,11 @@ def test_load_prompts():
 
 def test_save_results(tmp_path):
     results = [
-        Results(
+        Result(
             prompt="Hello world",
             exercice=Exercise(problem="Hello world WORLDDDDDDDDDDD", solution=""),
         ),
-        Results(
+        Result(
             prompt="Goodbye world",
             exercice=Exercise(problem="Goodbye world WORLDDDDDDDDDDD", solution=""),
         ),
@@ -85,13 +85,13 @@ def test_save_results(tmp_path):
     with open(file, "r") as f:
         lines = f.readlines()
 
-    prompts = [Results.parse_obj(json.loads(line)) for line in lines]
+    prompts = [Result.parse_obj(json.loads(line)) for line in lines]
 
     assert len(prompts) == 2
     assert prompts[0].prompt == "Hello world"
-    assert prompts[0].exercice.problem == "Hello world WORLDDDDDDDDDDD"
+    assert prompts[0].exercise.problem == "Hello world WORLDDDDDDDDDDD"
     assert prompts[1].prompt == "Goodbye world"
-    assert prompts[1].exercice.problem == "Goodbye world WORLDDDDDDDDDDD"
+    assert prompts[1].exercise.problem == "Goodbye world WORLDDDDDDDDDDD"
 
 
 # def test_generator_to_functions():
