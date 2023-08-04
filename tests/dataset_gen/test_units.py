@@ -8,7 +8,6 @@ from textbook.dataset_gen.dataset_gen import (
     MonkeyGenerator,
     write_results_to_jsonl,
     Result,
-    Exercise,
     generator_to_exercises,
 )
 import numpy as np
@@ -19,7 +18,8 @@ def mock_openai(mocker):
     mocker.patch(
         "textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate",
         return_value=Result(
-            prompt="Cheesecake with strawberries", output='def gruyere(): """No way jose""" return 0'
+            prompt="Cheesecake with strawberries",
+            output='def gruyere(): """No way jose""" return 0',
         ),
     )
 

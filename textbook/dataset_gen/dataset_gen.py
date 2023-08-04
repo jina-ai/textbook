@@ -102,7 +102,11 @@ class MonkeyGenerator:
         if not (seed % 10):
             raise GenerationError("Monkey failed")
 
-        return Result(prompt=prompt, output='def gorilla(): """Empty function for a gorilla""" return 0' * self.n_functions)
+        return Result(
+            prompt=prompt,
+            output='def gorilla(): """Empty function for a gorilla""" return 0'
+            * self.n_functions,
+        )
 
 
 def generation(
