@@ -1,4 +1,5 @@
 import json
+import os
 
 from textbook.dataset_gen.dataset_gen import (
     OpenAIGenerator,
@@ -42,30 +43,36 @@ def test_generation_mock(mocker):
     assert gen.output == 'def gruyere(): """No way jose""" return 0'
 
 
-def test_mass_generation(mocker):
+def test_mass_generation(mocker, tmp_path):
     mock_openai(mocker)
     generator = OpenAIGenerator()
 
     prompts = ["Hello world", "Goodbye world"]
-    results = mass_generation(prompts, generator)
+    results = mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
+    assert len(os.listdir(tmp_path)) == 2
+    with open(f"{tmp_path}/results_1.jsonl", "r") as f:
+        lines = f.readlines()
+    assert lines == 2
 
-    assert len(results) == 2
 
 
 def test_generation_monkey_generator():
-    generator = MonkeyGenerator(speed=-1, n_functions=np.random.randint(0, 100))
-    prompts = "Hello world"
-    generation(prompts, generator)
-
-
-def test_mass_generation_monkey_generator():
     n_functions = np.random.randint(0, 100)
+    generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
+    prompts = "Hello world"
+    result = generation(prompts, generator)
+    assert len(result) == n_functions
+
+
+
+def test_mass_generation_monkey_generator(tmp_path):
+    n_functions = np.random.randint(1, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
 
     prompts = ["Hello world", "Goodbye world"] * 20
-    results = mass_generation(prompts, generator)
+    results = mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
 
-    assert len(results) == n_functions * 20 * 2
+    assert os.listdir(tmp_path) == 8
 
 
 def test_load_prompts():

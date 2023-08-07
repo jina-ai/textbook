@@ -134,10 +134,10 @@ def generation(
 
 
 def mass_generation(
-    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
+    prompts: List[str], generator: Generator, save_dir: str, save_every: int, pool_size: int = 10, retries: int = 10,
 ) -> List[Exercise]:
     """
-    generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
+    Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
     results = []
     counter = 0
@@ -153,8 +153,8 @@ def mass_generation(
                 result = future.result()
                 progress.update(task, advance=1)
                 results += result
-                if len(results) == 2_000:
-                    write_results_to_jsonl(f"textbook/dataset_gen/exercises/results_{counter}.jsonl", results)
+                if len(results) == save_every:
+                    write_results_to_jsonl(f"{save_dir}/results_{counter}.jsonl", results)
                     results = []
                     counter += 1
 
