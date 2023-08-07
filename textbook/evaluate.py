@@ -24,7 +24,7 @@ def read_jsonl_file(file_path):
 
 
 def generate_one_completion(
-    model: torch.nn.Module,
+    model: PreTrainedModel,
     tokenizer: PreTrainedTokenizer,
     prompt: str,
     max_new_tokens: int = 512,
