@@ -134,7 +134,12 @@ def generation(
 
 
 def mass_generation(
-    prompts: List[str], generator: Generator, save_dir: str, save_every: int, pool_size: int = 10, retries: int = 10,
+    prompts: List[str],
+    generator: Generator,
+    save_dir: str,
+    save_every: int,
+    pool_size: int = 10,
+    retries: int = 10,
 ) -> List[Exercise]:
     """
     Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
@@ -154,7 +159,9 @@ def mass_generation(
                 progress.update(task, advance=1)
                 results += result
                 if len(results) == save_every:
-                    write_results_to_jsonl(f"{save_dir}/results_{counter}.jsonl", results)
+                    write_results_to_jsonl(
+                        f"{save_dir}/results_{counter}.jsonl", results
+                    )
                     results = []
                     counter += 1
 
