@@ -4,7 +4,9 @@ from textbook.model import Replit
 
 def test_evaluate(monkeypatch):
     # Define a replacement function to be used in the test
-    def mock_generate_one_completion(model, tokenizer, prompt):
+    def mock_generate_one_completion(
+        model, tokenizer, prompt, max_new_tokens: int = 512
+    ):
         return "\n  return 1"
 
     # Monkey patch the 'add_numbers' function with the 'mock_add_numbers' function
