@@ -114,7 +114,7 @@ def train(
 
         # log sample values
         results = list(sample_results.values())
-        columns = list(results.keys())
+        columns = list(results[0].keys())
         results_data = [[result[key] for key in columns] for result in results]
         eval_table = wandb.Table(columns=columns, data=results_data)
         run.log({"Evaluation": eval_table})
