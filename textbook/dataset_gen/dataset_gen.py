@@ -6,9 +6,18 @@ import time
 from typing import List, Protocol
 
 import openai
+from openai import OpenAIError
 from rich.progress import Progress
 
 from pydantic import BaseModel
+from textbook.dataset_gen.create_prompts import Topic
+from rich.progress import (
+    Progress,
+    TextColumn,
+    BarColumn,
+    TimeRemainingColumn,
+    TimeElapsedColumn,
+)
 
 
 class Exercise(BaseModel):
@@ -72,7 +81,7 @@ class OpenAIGenerator:
 
     def generate(self, prompt: str) -> Result:
         chat_completion = openai.ChatCompletion.create(
-            model=self.model, messages=[{"role": "user", "content": prompt}]
+            model=self.model, messages=[{"role": "user", "content": prompt}], max_tokens=250, timeout=60
         )
         result = Result(
             prompt=prompt, output=chat_completion.choices[0].message.content
@@ -81,7 +90,7 @@ class OpenAIGenerator:
         return result
 
 
-class GenerationError(Exception):
+class GenerationError(OpenAIError):
     ...
 
 
@@ -99,8 +108,8 @@ class MonkeyGenerator:
 
         if self.speed > 0:
             time.sleep(seed / 100 * self.speed)
-        if not (seed % 10):
-            raise GenerationError("Monkey failed")
+        # if not (seed % 50):
+        #     raise GenerationError("Monkey failed")
 
         return Result(
             prompt=prompt,
@@ -115,12 +124,14 @@ def generation(
     retries: int = 10,
 ) -> List[Exercise]:
     success = False
+    time.sleep(random.random())
     for i in range(retries):
         try:
             result = generator.generate(prompt)
             success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i + 1}/{retries}")
+            time.sleep(1)
         else:
             break
 
@@ -146,7 +157,16 @@ def mass_generation(
     """
     results = []
     counter = 0
-    with Progress() as progress:
+    with Progress(
+            TextColumn("[bold blue]Generation", justify="right"),
+            BarColumn(bar_width=None),
+            "[progress.percentage]{task.percentage:>3.1f}%",
+            "•",
+            TimeElapsedColumn(),
+            "•",
+            TimeRemainingColumn(),
+    ) as progress:
+
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
             futures = []
@@ -158,7 +178,7 @@ def mass_generation(
                 result = future.result()
                 progress.update(task, advance=1)
                 results += result
-                if len(results) == save_every:
+                if len(results) >= save_every:
                     write_results_to_jsonl(
                         f"{save_dir}/results_{counter}.jsonl", results
                     )
@@ -174,6 +194,13 @@ def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
 
     prompts = [json.loads(line)[key_prompt] for line in lines]
     return prompts
+
+
+def load_leaves(file: str) -> List[Topic]:
+    with open(file, "r") as f:
+        lines = json.load(f)
+    topics = [Topic.parse_obj(line) for line in lines]
+    return topics
 
 
 def write_results_to_jsonl(file_path: str, results: List[Exercise]):

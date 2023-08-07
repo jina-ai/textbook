@@ -12,6 +12,7 @@ from textbook.dataset_gen.dataset_gen import (
     generator_to_exercises,
     split_exercises,
     check_exercise,
+    Exercise,
 )
 import numpy as np
 import pytest
@@ -22,7 +23,7 @@ def mock_openai(mocker):
         "textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate",
         return_value=Result(
             prompt="Cheesecake with strawberries",
-            output='def gruyere(): """No way jose""" return 0',
+            output='def gruyere(): """No way jose""" return 0' * 2,
         ),
     )
 
@@ -38,9 +39,11 @@ def test_generation_mock(mocker):
     mock_openai(mocker)
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
+    prompts = "Hello World"
+    generation(prompts, generator)
     assert isinstance(gen, Result)
     assert gen.prompt == "Cheesecake with strawberries"
-    assert gen.output == 'def gruyere(): """No way jose""" return 0'
+    assert gen.output == 'def gruyere(): """No way jose""" return 0' * 2
 
 
 def test_mass_generation(mocker, tmp_path):
@@ -52,7 +55,10 @@ def test_mass_generation(mocker, tmp_path):
     assert len(os.listdir(tmp_path)) == 2
     with open(f"{tmp_path}/results_1.jsonl", "r") as f:
         lines = f.readlines()
-    assert lines == 2
+    assert (
+        Exercise.parse_obj(json.loads(lines[0])).problem
+        == 'def gruyere(): """No way jose"""'
+    )
 
 
 def test_generation_monkey_generator():
@@ -63,14 +69,19 @@ def test_generation_monkey_generator():
     assert len(result) == n_functions
 
 
-def test_mass_generation_monkey_generator(tmp_path):
+def test_mass_generation_monkey_generator(mocker, tmp_path):
     n_functions = np.random.randint(1, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
 
     prompts = ["Hello world", "Goodbye world"] * 20
     mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
-
-    assert os.listdir(tmp_path) == 8
+    assert len(os.listdir(tmp_path)) > 20
+    with open(f"{tmp_path}/results_0.jsonl", "r") as f:
+        lines = f.readlines()
+    assert (
+        Exercise.parse_obj(json.loads(lines[0])).problem
+        == 'def gorilla(): """Empty function for a gorilla"""'
+    )
 
 
 def test_load_prompts():
