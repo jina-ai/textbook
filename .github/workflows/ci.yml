@@ -115,7 +115,7 @@ jobs:
 
   run-evaluation-test:
     needs: [check-black, lint-ruff]
-    runs-on: ubuntu-20.04
+    runs-on: [self-hosted, x64, gpu, linux]
     strategy:
       fail-fast: false
     steps:

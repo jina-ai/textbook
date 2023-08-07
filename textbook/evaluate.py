@@ -23,7 +23,7 @@ def read_jsonl_file(file_path):
     return data
 
 
-def generate_one_completion(model, tokenizer, prompt):
+def generate_one_completion(model: pytorch.nn.Module, tokenizer: PretrainedTokenizer, prompt: str) -> List[str]:
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     generation_output = model.generate(

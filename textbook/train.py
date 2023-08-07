@@ -79,7 +79,7 @@ def train(
     if use_wandb:
         run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
     else:
-        run = None
+        run = None # type: ignore
 
     trainer = transformers.Trainer(
         model=model,
