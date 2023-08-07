@@ -7,7 +7,6 @@ from typing import List, Protocol
 
 import openai
 from openai import OpenAIError
-from rich.progress import Progress
 
 from pydantic import BaseModel
 from textbook.dataset_gen.create_prompts import Topic
@@ -81,7 +80,10 @@ class OpenAIGenerator:
 
     def generate(self, prompt: str) -> Result:
         chat_completion = openai.ChatCompletion.create(
-            model=self.model, messages=[{"role": "user", "content": prompt}], max_tokens=250, timeout=60
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=250,
+            timeout=60,
         )
         result = Result(
             prompt=prompt, output=chat_completion.choices[0].message.content
@@ -158,15 +160,14 @@ def mass_generation(
     results = []
     counter = 0
     with Progress(
-            TextColumn("[bold blue]Generation", justify="right"),
-            BarColumn(bar_width=None),
-            "[progress.percentage]{task.percentage:>3.1f}%",
-            "•",
-            TimeElapsedColumn(),
-            "•",
-            TimeRemainingColumn(),
+        TextColumn("[bold blue]Generation", justify="right"),
+        BarColumn(bar_width=None),
+        "[progress.percentage]{task.percentage:>3.1f}%",
+        "•",
+        TimeElapsedColumn(),
+        "•",
+        TimeRemainingColumn(),
     ) as progress:
-
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
             futures = []
