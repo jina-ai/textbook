@@ -21,9 +21,7 @@ def check_correctness(
     """
 
     def unsafe_execute():
-
         with create_tempdir():
-
             # These system calls are needed when cleaning up tempdir.
             import os
             import shutil
