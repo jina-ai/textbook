@@ -1,10 +1,10 @@
 import json
 import re
 import tempfile
-from typing import Optional
+from typing import Optional, Union
 
 import torch
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizer, PreTrainedModel
 from human_eval.data import write_jsonl, read_problems, HUMAN_EVAL
 from human_eval.evaluation import evaluate_functional_correctness
 
@@ -47,7 +47,7 @@ def generate_one_completion(model, tokenizer, prompt):
 
 
 def evaluate(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, PreTrainedModel],
     tokenizer: PreTrainedTokenizer,
     prompt_template: str = "{prompt}",
     eval_file: str = HUMAN_EVAL,

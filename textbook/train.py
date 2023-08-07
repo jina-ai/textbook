@@ -78,6 +78,8 @@ def train(
     use_wandb = local_rank == 0 and use_wandb
     if use_wandb:
         run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
+    else:
+        run = None
 
     trainer = transformers.Trainer(
         model=model,
@@ -108,7 +110,7 @@ def train(
 
     accuracy_results, sample_results = evaluate(model, tokenizer, eval_size=eval_size)
 
-    if use_wandb and wandb_log_model:
+    if use_wandb and run and wandb_log_model:
         # log accuracy@k results
         run.log(accuracy_results)
 
