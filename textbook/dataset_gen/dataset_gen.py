@@ -140,6 +140,7 @@ def mass_generation(
     generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
     results = []
+    counter = 0
     with Progress() as progress:
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
@@ -152,6 +153,10 @@ def mass_generation(
                 result = future.result()
                 progress.update(task, advance=1)
                 results += result
+                if len(results) == 2_000:
+                    write_results_to_jsonl(f"textbook/dataset_gen/exercises/results_{counter}.jsonl", results)
+                    results = []
+                    counter += 1
 
     return results
 
