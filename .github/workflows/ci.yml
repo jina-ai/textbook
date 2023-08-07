@@ -113,6 +113,34 @@ jobs:
           poetry run pytest tests/dataset_gen -m "not slow and not openai"
         timeout-minutes: 30
 
+  run-evaluation-test:
+    needs: [check-black, lint-ruff]
+    runs-on: [self-hosted, x64, gpu, linux]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Prepare environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -U poetry
+          poetry install
+          poetry run pip install torch
+          poetry run huggingface-cli login --token $HF_AUTH_TOKEN
+
+
+      - name: Test
+        id: test
+        run: |
+          poetry run pytest tests/eval
+        timeout-minutes: 10
+    env:
+      HF_AUTH_TOKEN: ${{ secrets.HF_AUTH_TOKEN }}
+
 # just for blocking the merge until all parallel core-test are successful
   success-all-test:
     needs: [check-mypy, run-training-test, run-dataset-gen-test, check-black, lint-ruff]

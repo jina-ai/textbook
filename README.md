@@ -39,7 +39,7 @@ deepspeed --num_gpus=2 textbook/train.py --deepspeed ds_config.json --epochs 2 -
 
 Note:
 
-to use starcoder base model you need to first login to HF
+to use starcoder base model you need to first login to HF and accept the ToS of the used starcoder base model (https://huggingface.co/bigcode/starcoderbase-1b)
 ```cmd
 huggingface-cli login
 ```
