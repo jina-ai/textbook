@@ -52,6 +52,7 @@ def train(
     deepspeed: Optional[str] = None,
     debug: bool = False,
     eval_size: Optional[int] = None,
+    eval_max_new_tokens: int = 512,
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
@@ -79,7 +80,7 @@ def train(
     if use_wandb:
         run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
     else:
-        run = None # type: ignore
+        run = None  # type: ignore
 
     trainer = transformers.Trainer(
         model=model,
@@ -108,7 +109,9 @@ def train(
 
     trainer.train()
 
-    accuracy_results, sample_results = evaluate(model, tokenizer, eval_size=eval_size)
+    accuracy_results, sample_results = evaluate(
+        model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens
+    )
 
     if use_wandb and run and wandb_log_model:
         # log accuracy@k results

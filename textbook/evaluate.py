@@ -1,7 +1,7 @@
 import json
 import re
 import tempfile
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import torch
 from transformers import PreTrainedTokenizer, PreTrainedModel
@@ -23,12 +23,17 @@ def read_jsonl_file(file_path):
     return data
 
 
-def generate_one_completion(model: pytorch.nn.Module, tokenizer: PretrainedTokenizer, prompt: str) -> List[str]:
+def generate_one_completion(
+    model: torch.nn.Module,
+    tokenizer: PreTrainedTokenizer,
+    prompt: str,
+    max_new_tokens: int = 512,
+) -> List[str]:
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     generation_output = model.generate(
         **inputs,
-        max_new_tokens=512,
+        max_new_tokens=max_new_tokens,
         eos_token_id=tokenizer.eos_token_id,
         return_dict_in_generate=True,
     )
@@ -52,6 +57,7 @@ def evaluate(
     prompt_template: str = "{prompt}",
     eval_file: str = HUMAN_EVAL,
     eval_size: Optional[int] = None,
+    max_new_tokens: int = 512,
 ):
     model.eval()
     problems = read_problems(evalset_file=eval_file)
@@ -67,6 +73,7 @@ def evaluate(
                 model,
                 tokenizer,
                 prompt_template.format(prompt=problems[task_id]["prompt"]),
+                max_new_tokens=max_new_tokens,
             ),
         )
         for task_id in problems
