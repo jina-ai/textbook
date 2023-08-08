@@ -12,8 +12,6 @@ from pydantic import BaseModel
 from textbook.dataset_gen.create_prompts import Topic
 from rich.progress import (
     Progress,
-    TextColumn,
-    BarColumn,
     TimeRemainingColumn,
     TimeElapsedColumn,
 )
@@ -160,10 +158,7 @@ def mass_generation(
     results = []
     counter = 0
     with Progress(
-        TextColumn("[bold blue]Generation", justify="right"),
-        BarColumn(bar_width=None),
-        "[progress.percentage]{task.percentage:>3.1f}%",
-        "•",
+        *Progress.get_default_columns(),
         TimeElapsedColumn(),
         "•",
         TimeRemainingColumn(),
