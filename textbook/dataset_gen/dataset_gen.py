@@ -180,6 +180,8 @@ async def abatch_generation(
     id: int,
 ):
 
+    print(f"batch {id} started processing {len(prompts)}")
+
     tasks = []
     for prompt in prompts:
         tasks.append(

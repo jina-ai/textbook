@@ -74,6 +74,7 @@ def generate(
     debug_speed: int = 2,
     n_combinations: int = 200,
     n_prompts: int = 100,
+    batch_size: int = 5,
 ):
 
     with open(tree_path, "r") as openfile:
@@ -116,7 +117,7 @@ def generate(
             prompts_selection,
             generator,
             save_dir=output_path,
-            batch_size=int(n_prompts / 10),
+            batch_size=batch_size,
             retries=retries,
         )
     )
