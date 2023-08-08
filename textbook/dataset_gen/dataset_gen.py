@@ -145,9 +145,19 @@ def generation(
         return [Exercise(problem=prompt, solution="")]
 
 
+def _generation_wrapper(
+    prompt: str,
+    get_generator: Callable[[], Generator],
+    update_progress: Callable,
+    retries: int,
+) -> List[Exercise]:
+    generator = get_generator()
+    return generation(prompt, generator, update_progress, retries)
+
+
 def mass_generation(
     prompts: List[str],
-    generator: Generator,
+    get_generator: Callable[[], Generator],
     save_dir: str,
     save_every: int,
     pool_size: int = 10,
@@ -173,9 +183,9 @@ def mass_generation(
             for i in range(len(prompts)):  # call API 10 times
                 futures.append(
                     executor.submit(
-                        generation,
+                        _generation_wrapper,
                         prompts[i],
-                        generator,
+                        get_generator,
                         update_progress,
                         retries=retries,
                     )

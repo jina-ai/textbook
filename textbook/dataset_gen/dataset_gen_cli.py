@@ -87,9 +87,14 @@ def generate(
 
     openai.api_key = os.environ["OPENAI_API_KEY"]
     if not debug:
-        generator = OpenAIGenerator()
+
+        def get_generator():
+            return OpenAIGenerator()
+
     else:
-        generator = MonkeyGenerator(speed=debug_speed)
+
+        def get_generator():
+            return MonkeyGenerator(speed=debug_speed)
 
     leaves = load_leaves(leaves_path)
 
@@ -108,7 +113,7 @@ def generate(
 
     mass_generation(
         prompts_selection,
-        generator,
+        get_generator,
         save_dir=output_path,
         save_every=int(n_prompts / 10),
         pool_size=pool_size,
