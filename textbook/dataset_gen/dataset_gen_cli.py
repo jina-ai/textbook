@@ -63,15 +63,11 @@ def create_prompts(
     return prompts
 
 
-with open("tree/professions.json", "r") as openfile:
-    # Reading from json file
-    professions = list(json.load(openfile))
-
-
 @app.command()
 def generate(
     leaves_path: str,
     output_path: str,
+    tree_path: str,
     retries: int = 10,
     pool_size: int = 10,
     debug: bool = False,
@@ -79,6 +75,9 @@ def generate(
     n_combinations: int = 200,
     n_prompts: int = 100,
 ):
+
+    with open(tree_path, "r") as openfile:
+        professions = list(json.load(openfile))
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
