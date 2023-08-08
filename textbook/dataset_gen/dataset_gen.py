@@ -199,7 +199,6 @@ async def abatch_generation(
         else:
             results += res
 
-    print(len(results))
     write_results_to_jsonl(f"{save_dir}/results_{id}.jsonl", results)
 
 
