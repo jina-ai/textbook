@@ -159,14 +159,22 @@ def _generation_wrapper(
 
     dir_path, file_path = file_path_sum[:4], file_path_sum[4:]
     dir_path = os.path.join(save_dir, dir_path)
+    file_path = os.path.join(dir_path, file_path + ".jsonl")
 
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
+    if os.path.exists(
+        file_path
+    ):  # WE DONT SPEND MONEY ON EXISTING QUERY HAHAHAHAHAHAHAHAH
+        print("EVIL LAUGH LOLILOL")
+        return
+
     generator = get_generator()
+
     results = generation(prompt, generator, update_progress, retries)
 
-    save_results_to_disk(os.path.join(dir_path, file_path), results)
+    save_results_to_disk(file_path, results)
 
 
 def mass_generation(
