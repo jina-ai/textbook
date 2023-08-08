@@ -1,3 +1,4 @@
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 import random
@@ -63,8 +64,11 @@ def generator_to_exercises(output: str) -> List[Exercise]:
     return results
 
 
-class Generator(Protocol):
+class GeneratorProtocol(Protocol):
     def generate(self, prompt: str) -> Result:
+        ...
+
+    async def agenerate(self, prompt: str) -> Result:
         ...
 
 
@@ -77,6 +81,19 @@ class OpenAIGenerator:
 
     def generate(self, prompt: str) -> Result:
         chat_completion = openai.ChatCompletion.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=250,
+            timeout=60,
+        )
+        result = Result(
+            prompt=prompt, output=chat_completion.choices[0].message.content
+        )
+
+        return result
+
+    async def agenerate(self, prompt: str) -> Result:
+        chat_completion = await openai.ChatCompletion.acreate(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=250,
@@ -116,10 +133,19 @@ class MonkeyGenerator:
             * self.n_functions,
         )
 
+    async def agenerate(self, prompt: str) -> Result:
+        loop = asyncio.get_event_loop()
+
+        def x():
+            pass
+
+        await loop.run_in_executor(None, x)
+        return self.generate(prompt)
+
 
 def generation(
     prompt: str,
-    generator: Generator,
+    generator: GeneratorProtocol,
     retries: int,
 ) -> List[Exercise]:
     success = False
@@ -145,7 +171,7 @@ def generation(
 
 def mass_generation(
     prompts: List[str],
-    generator: Generator,
+    generator: GeneratorProtocol,
     save_dir: str,
     save_every: int,
     pool_size: int = 10,

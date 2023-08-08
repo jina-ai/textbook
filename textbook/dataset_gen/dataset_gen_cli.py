@@ -5,7 +5,7 @@ import numpy as np
 from typer import Typer
 from typing import List
 from textbook.dataset_gen.dataset_gen import (
-    Generator,
+    GeneratorProtocol,
     load_leaves,
     mass_generation,
     OpenAIGenerator,
@@ -82,7 +82,7 @@ def generate(
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    generator: Generator
+    generator: GeneratorProtocol
 
     openai.api_key = os.environ["OPENAI_API_KEY"]
     if not debug:
