@@ -1,8 +1,6 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import json
 import random
-import re
 import time
 
 from typing import Callable, List, Protocol
@@ -16,6 +14,7 @@ from rich.progress import (
     Progress,
     TimeElapsedColumn,
 )
+from more_itertools import batched
 
 
 class Exercise(BaseModel):
@@ -149,7 +148,6 @@ async def ageneration(
     generator: GeneratorProtocol,
     retries: int,
     update_progress: Callable,
-    queue: asyncio.Queue,
 ):
     success = False
     time.sleep(random.random())
@@ -166,26 +164,57 @@ async def ageneration(
     if success:
         exercises = generator_to_exercises(result.output)
         update_progress()
-        queue.put(exercises)
+        return exercises
 
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        queue.put([Exercise(problem=prompt, solution="")])
+        return [Exercise(problem=prompt, solution="")]
+
+
+async def abatch_generation(
+    prompts: List[str],
+    save_dir: str,
+    generator: GeneratorProtocol,
+    retries: int,
+    update_progress: Callable,
+    id: int,
+):
+
+    tasks = []
+    for prompt in prompts:
+        tasks.append(
+            asyncio.create_task(
+                ageneration(
+                    prompt, generator, update_progress=update_progress, retries=retries
+                )
+            )
+        )
+
+    all_results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    results = []
+    for res in all_results:
+        if isinstance(res, BaseException):
+            print(res)
+        else:
+            results += res
+
+    print(len(results))
+    write_results_to_jsonl(f"{save_dir}/results_{id}.jsonl", results)
+
 
 async def mass_generation(
     prompts: List[str],
     generator: GeneratorProtocol,
     save_dir: str,
-    save_every: int,
-    pool_size: int = 10,
+    batch_size: int,
     retries: int = 10,
-) -> List[Exercise]:
+):
     """
     Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
 
-
-    queue = asyncio.Queue()
+    asyncio.Queue()
     with Progress(
         *Progress.get_default_columns(),
         "•",
@@ -196,33 +225,22 @@ async def mass_generation(
         def update_progress():
             progress.update(progress_task, advance=1)
 
-        
-        for prompt in prompts:
-            asyncio.create_task(ageneration(prompt,generator,update_progress=update_progress,retries=retries, queue=queue))
-
-        results = []
-        current_batch = []
-        counter_batch = 0
-        counter_success = 0
-        while len(results) < len(prompt):
-            await asyncio.sleep(0.1)
-            if not queue.empty():
-                current_batch.extend(queue.get())
-                counter_success += 1
-
-            if len(current_batch) > save_every:
-                write_results_to_jsonl(
-                    f"{save_dir}/results_{counter_batch}.jsonl", current_batch
+        tasks = []
+        for id, batch in enumerate(batched(prompts, batch_size)):
+            tasks.append(
+                asyncio.create_task(
+                    abatch_generation(
+                        batch,
+                        save_dir,
+                        generator,
+                        update_progress=update_progress,
+                        retries=retries,
+                        id=id,
+                    )
                 )
-                results += current_batch
-                counter_batch += 1
-                counter_success = 0
-                current_batch = []
-            
+            )
 
-
-
-    return results
+        await asyncio.gather(*tasks)
 
 
 def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:

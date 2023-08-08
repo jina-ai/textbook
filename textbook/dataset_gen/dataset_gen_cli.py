@@ -70,7 +70,6 @@ def generate(
     output_path: str,
     tree_path: str,
     retries: int = 10,
-    pool_size: int = 10,
     debug: bool = False,
     debug_speed: int = 2,
     n_combinations: int = 200,
@@ -111,15 +110,16 @@ def generate(
     except Exception:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
-    loop.run_until_complete(mass_generation(
-        prompts_selection,
-        generator,
-        save_dir=output_path,
-        save_every=int(n_prompts / 10),
-        pool_size=pool_size,
-        retries=retries,
-    ))
+
+    loop.run_until_complete(
+        mass_generation(
+            prompts_selection,
+            generator,
+            save_dir=output_path,
+            batch_size=int(n_prompts / 10),
+            retries=retries,
+        )
+    )
 
 
 if __name__ == "__main__":

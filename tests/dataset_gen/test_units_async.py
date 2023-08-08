@@ -1,9 +1,15 @@
 import json
-import re
 import numpy as np
 import pytest
-from textbook.dataset_gen.dataset_gen import Exercise, OpenAIGenerator, Result, MonkeyGenerator, mass_generation
+from textbook.dataset_gen.dataset_gen import (
+    Exercise,
+    OpenAIGenerator,
+    Result,
+    MonkeyGenerator,
+    mass_generation,
+)
 import os
+
 
 @pytest.mark.openai
 @pytest.mark.asyncio
@@ -26,15 +32,13 @@ async def test_mass_generation_monkey_generator(tmp_path):
     n_functions = np.random.randint(1, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
 
-    prompts = ["Hello world", "Goodbye world"] * 20
-    results = await mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
+    prompts = ["Hello world", "Goodbye world"] * 5
+    await mass_generation(prompts, generator, save_dir=str(tmp_path), batch_size=1)
 
-    assert len(results) > 2
-    # assert len(os.listdir(tmp_path)) > 20
-    # with open(f"{tmp_path}/results_0.jsonl", "r") as f:
-    #     lines = f.readlines()
-    # assert (
-    #     Exercise.parse_obj(json.loads(lines[0])).problem
-    #     == 'def gorilla(): """Empty function for a gorilla"""'
-    # )
-
+    assert len(os.listdir(tmp_path)) > 5
+    with open(f"{tmp_path}/results_0.jsonl", "r") as f:
+        lines = f.readlines()
+    assert (
+        Exercise.parse_obj(json.loads(lines[0])).problem
+        == 'def gorilla(): """Empty function for a gorilla"""'
+    )

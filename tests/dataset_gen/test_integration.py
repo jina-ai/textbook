@@ -8,6 +8,5 @@ def test_cli_dataset_gen(tmp_path):
         debug=True,
         debug_speed=-1,
         retries=10,
-        pool_size=10,
-        output_path=tmp_path / "results.jsonl",
+        output_path=tmp_path,
     )
