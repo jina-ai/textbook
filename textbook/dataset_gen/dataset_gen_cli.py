@@ -1,3 +1,4 @@
+import asyncio
 import random
 import itertools
 import json
@@ -105,14 +106,20 @@ def generate(
     prompts_flat = list(itertools.chain(*prompts))
     prompts_selection = [i.query for i in prompts_flat][:n_prompts]
 
-    mass_generation(
+    try:
+        loop = asyncio.get_event_loop()
+    except Exception:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+    loop.run_until_complete(mass_generation(
         prompts_selection,
         generator,
         save_dir=output_path,
         save_every=int(n_prompts / 10),
         pool_size=pool_size,
         retries=retries,
-    )
+    ))
 
 
 if __name__ == "__main__":

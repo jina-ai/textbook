@@ -2,9 +2,10 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 import random
+import re
 import time
 
-from typing import List, Protocol
+from typing import Callable, List, Protocol
 
 import openai
 from openai import OpenAIError
@@ -143,16 +144,18 @@ class MonkeyGenerator:
         return self.generate(prompt)
 
 
-def generation(
+async def ageneration(
     prompt: str,
     generator: GeneratorProtocol,
     retries: int,
-) -> List[Exercise]:
+    update_progress: Callable,
+    queue: asyncio.Queue,
+):
     success = False
     time.sleep(random.random())
     for i in range(retries):
         try:
-            result = generator.generate(prompt)
+            result = await generator.agenerate(prompt)
             success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i + 1}/{retries}")
@@ -162,14 +165,14 @@ def generation(
 
     if success:
         exercises = generator_to_exercises(result.output)
-        return exercises
+        update_progress()
+        queue.put(exercises)
 
     else:
         print(f"Generation failed for prompt {prompt}, skipping")
-        return [Exercise(problem=prompt, solution="")]
+        queue.put([Exercise(problem=prompt, solution="")])
 
-
-def mass_generation(
+async def mass_generation(
     prompts: List[str],
     generator: GeneratorProtocol,
     save_dir: str,
@@ -180,37 +183,44 @@ def mass_generation(
     """
     Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
-    results = []
-    counter = 0
+
+
+    queue = asyncio.Queue()
     with Progress(
         *Progress.get_default_columns(),
         "•",
         TimeElapsedColumn(),
     ) as progress:
+        progress_task = progress.add_task("[red]Generating...", total=len(prompts))
 
-        with ThreadPoolExecutor(max_workers=pool_size) as executor:
-            task = progress.add_task("[red]Generating...", total=len(prompts))
-            futures = []
-            for i in range(len(prompts)):  # call API 10 times
-                futures.append(
-                    executor.submit(
-                        generation,
-                        prompts[i],
-                        generator,
-                        retries=retries,
-                    )
+        def update_progress():
+            progress.update(progress_task, advance=1)
+
+        
+        for prompt in prompts:
+            asyncio.create_task(ageneration(prompt,generator,update_progress=update_progress,retries=retries, queue=queue))
+
+        results = []
+        current_batch = []
+        counter_batch = 0
+        counter_success = 0
+        while len(results) < len(prompt):
+            await asyncio.sleep(0.1)
+            if not queue.empty():
+                current_batch.extend(queue.get())
+                counter_success += 1
+
+            if len(current_batch) > save_every:
+                write_results_to_jsonl(
+                    f"{save_dir}/results_{counter_batch}.jsonl", current_batch
                 )
-            for future in futures:
-                result = future.result()
-                results += result
-                progress.update(task, advance=1)
+                results += current_batch
+                counter_batch += 1
+                counter_success = 0
+                current_batch = []
+            
 
-                if len(results) >= save_every:
-                    write_results_to_jsonl(
-                        f"{save_dir}/results_{counter}.jsonl", results
-                    )
-                    results = []
-                    counter += 1
+
 
     return results
 
