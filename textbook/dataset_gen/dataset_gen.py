@@ -230,7 +230,7 @@ async def mass_generation(
             tasks.append(
                 asyncio.create_task(
                     abatch_generation(
-                        batch,
+                        batch,  # type: ignore
                         save_dir,
                         generator,
                         update_progress=update_progress,
