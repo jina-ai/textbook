@@ -40,7 +40,7 @@ def test_generation_mock(mocker):
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
     prompts = "Hello World"
-    generation(prompts, generator)
+    generation(prompts, generator, retries=10)
     assert isinstance(gen, Result)
     assert gen.prompt == "Cheesecake with strawberries"
     assert gen.output == 'def gruyere(): """No way jose""" return 0' * 2
@@ -65,7 +65,7 @@ def test_generation_monkey_generator():
     n_functions = np.random.randint(0, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
     prompts = "Hello world"
-    result = generation(prompts, generator)
+    result = generation(prompts, generator, retries=10)
     assert len(result) == n_functions
 
 
