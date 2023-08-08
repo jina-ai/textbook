@@ -134,12 +134,7 @@ class MonkeyGenerator:
         )
 
     async def agenerate(self, prompt: str) -> Result:
-        loop = asyncio.get_event_loop()
-
-        def x():
-            pass
-
-        await loop.run_in_executor(None, x)
+        await asyncio.sleep(0)
         return self.generate(prompt)
 
 
