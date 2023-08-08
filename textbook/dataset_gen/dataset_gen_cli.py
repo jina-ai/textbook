@@ -79,6 +79,10 @@ def generate(
     n_combinations: int = 200,
     n_prompts: int = 100,
 ):
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
     generator: Generator
 
     openai.api_key = os.environ["OPENAI_API_KEY"]
