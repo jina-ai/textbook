@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import random
 import itertools
 import json
@@ -74,7 +75,8 @@ def generate(
     debug_speed: int = 2,
     n_combinations: int = 200,
     n_prompts: int = 100,
-    batch_size: int = 5,
+    batch_size: int = 1,
+    pool_size: int = 10,
 ):
 
     with open(tree_path, "r") as openfile:
@@ -108,6 +110,7 @@ def generate(
 
     try:
         loop = asyncio.get_event_loop()
+        loop.set_default_executor(ThreadPoolExecutor(max_workers=pool_size))
     except Exception:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
