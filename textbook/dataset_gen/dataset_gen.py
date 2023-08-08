@@ -12,7 +12,6 @@ from pydantic import BaseModel
 from textbook.dataset_gen.create_prompts import Topic
 from rich.progress import (
     Progress,
-    TimeRemainingColumn,
     TimeElapsedColumn,
 )
 
@@ -159,9 +158,8 @@ def mass_generation(
     counter = 0
     with Progress(
         *Progress.get_default_columns(),
-        TimeElapsedColumn(),
         "•",
-        TimeRemainingColumn(),
+        TimeElapsedColumn(),
     ) as progress:
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
