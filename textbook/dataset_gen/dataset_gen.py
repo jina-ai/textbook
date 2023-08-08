@@ -3,7 +3,7 @@ import json
 import random
 import time
 
-from typing import List, Protocol
+from typing import Callable, List, Protocol
 
 import openai
 from openai import OpenAIError
@@ -120,7 +120,8 @@ class MonkeyGenerator:
 def generation(
     prompt: str,
     generator: Generator,
-    retries: int = 10,
+    update_progress: Callable,
+    retries: int,
 ) -> List[Exercise]:
     success = False
     time.sleep(random.random())
@@ -136,6 +137,7 @@ def generation(
 
     if success:
         exercises = generator_to_exercises(result.output)
+        update_progress()
         return exercises
 
     else:
@@ -161,16 +163,25 @@ def mass_generation(
         "•",
         TimeElapsedColumn(),
     ) as progress:
+
+        def update_progress():
+            progress.update(task, advance=1)
+
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
             futures = []
             for i in range(len(prompts)):  # call API 10 times
                 futures.append(
-                    executor.submit(generation, prompts[i], generator, retries=retries)
+                    executor.submit(
+                        generation,
+                        prompts[i],
+                        generator,
+                        update_progress,
+                        retries=retries,
+                    )
                 )
             for future in futures:
                 result = future.result()
-                progress.update(task, advance=1)
                 results += result
                 if len(results) >= save_every:
                     write_results_to_jsonl(
