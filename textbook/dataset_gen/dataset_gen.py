@@ -1,14 +1,21 @@
 from concurrent.futures import ThreadPoolExecutor
 import json
+import os
 import random
 import time
 
-from typing import List, Protocol
+from typing import Callable, List, Protocol
 
 import openai
-from rich.progress import Progress
+from openai import OpenAIError
 
 from pydantic import BaseModel
+from textbook.dataset_gen.create_prompts import Topic
+from rich.progress import (
+    Progress,
+    TimeElapsedColumn,
+)
+import hashlib
 
 
 class Exercise(BaseModel):
@@ -72,7 +79,10 @@ class OpenAIGenerator:
 
     def generate(self, prompt: str) -> Result:
         chat_completion = openai.ChatCompletion.create(
-            model=self.model, messages=[{"role": "user", "content": prompt}]
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=250,
+            timeout=60,
         )
         result = Result(
             prompt=prompt, output=chat_completion.choices[0].message.content
@@ -81,7 +91,7 @@ class OpenAIGenerator:
         return result
 
 
-class GenerationError(Exception):
+class GenerationError(OpenAIError):
     ...
 
 
@@ -99,8 +109,8 @@ class MonkeyGenerator:
 
         if self.speed > 0:
             time.sleep(seed / 100 * self.speed)
-        if not (seed % 10):
-            raise GenerationError("Monkey failed")
+        # if not (seed % 50):
+        #     raise GenerationError("Monkey failed")
 
         return Result(
             prompt=prompt,
@@ -112,20 +122,24 @@ class MonkeyGenerator:
 def generation(
     prompt: str,
     generator: Generator,
-    retries: int = 10,
+    update_progress: Callable,
+    retries: int,
 ) -> List[Exercise]:
     success = False
+    time.sleep(random.random())
     for i in range(retries):
         try:
             result = generator.generate(prompt)
             success = True
         except GenerationError:
             print(f"Generation failed for prompt {prompt}, retrying {i + 1}/{retries}")
+            time.sleep(1)
         else:
             break
 
     if success:
         exercises = generator_to_exercises(result.output)
+        update_progress()
         return exercises
 
     else:
@@ -133,27 +147,63 @@ def generation(
         return [Exercise(problem=prompt, solution="")]
 
 
+def _generation_wrapper(
+    prompt: str,
+    get_generator: Callable[[], Generator],
+    update_progress: Callable,
+    save_dir: str,
+    retries: int,
+):
+    file_path_sum = hashlib.md5(prompt.encode("utf-8")).hexdigest()
+
+    dir_path, file_path = file_path_sum[:4], file_path_sum[4:]
+    dir_path = os.path.join(save_dir, dir_path)
+    file_path = os.path.join(dir_path, file_path + ".jsonl")
+
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    if os.path.exists(
+        file_path
+    ):  # WE DONT SPEND MONEY ON EXISTING QUERY HAHAHAHAHAHAHAHAH
+        print("EVIL LAUGH LOLILOL")
+        return
+
+    generator = get_generator()
+
+    results = generation(prompt, generator, update_progress, retries)
+
+    write_results_to_jsonl(file_path, results)
+
+
 def mass_generation(
-    prompts: List[str], generator: Generator, pool_size: int = 10, retries: int = 10
-) -> List[Exercise]:
+    prompts: List[str],
+    get_generator: Callable[[], Generator],
+    save_dir: str,
+    pool_size: int = 10,
+    retries: int = 10,
+):
     """
-    generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
+    Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
-    results = []
-    with Progress() as progress:
+    with Progress(
+        *Progress.get_default_columns(),
+        "•",
+        TimeElapsedColumn(),
+    ) as progress:
+
+        def update_progress():
+            progress.update(task, advance=1)
+
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             task = progress.add_task("[red]Generating...", total=len(prompts))
-            futures = []
-            for i in range(len(prompts)):  # call API 10 times
-                futures.append(
-                    executor.submit(generation, prompts[i], generator, retries=retries)
-                )
-            for future in futures:
-                result = future.result()
-                progress.update(task, advance=1)
-                results += result
 
-    return results
+            def map_fn(prompt):
+                _generation_wrapper(
+                    prompt, get_generator, update_progress, save_dir, retries
+                )
+
+            list(executor.map(map_fn, prompts))
 
 
 def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
@@ -162,6 +212,13 @@ def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
 
     prompts = [json.loads(line)[key_prompt] for line in lines]
     return prompts
+
+
+def load_leaves(file: str) -> List[Topic]:
+    with open(file, "r") as f:
+        lines = json.load(f)
+    topics = [Topic.parse_obj(line) for line in lines]
+    return topics
 
 
 def write_results_to_jsonl(file_path: str, results: List[Exercise]):

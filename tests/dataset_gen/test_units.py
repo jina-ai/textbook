@@ -1,4 +1,5 @@
 import json
+import os
 
 from textbook.dataset_gen.dataset_gen import (
     OpenAIGenerator,
@@ -21,9 +22,13 @@ def mock_openai(mocker):
         "textbook.dataset_gen.dataset_gen.OpenAIGenerator.generate",
         return_value=Result(
             prompt="Cheesecake with strawberries",
-            output='def gruyere(): """No way jose""" return 0',
+            output='def gruyere(): """No way jose""" return 0' * 2,
         ),
     )
+
+
+def update_progress():
+    ...
 
 
 @pytest.mark.openai
@@ -37,35 +42,50 @@ def test_generation_mock(mocker):
     mock_openai(mocker)
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
+    prompts = "Hello World"
+    generation(prompts, generator, update_progress, 10)
     assert isinstance(gen, Result)
     assert gen.prompt == "Cheesecake with strawberries"
-    assert gen.output == 'def gruyere(): """No way jose""" return 0'
+    assert gen.output == 'def gruyere(): """No way jose""" return 0' * 2
 
 
-def test_mass_generation(mocker):
+def test_mass_generation(mocker, tmp_path):
     mock_openai(mocker)
-    generator = OpenAIGenerator()
+
+    def get_generator():
+        return OpenAIGenerator()
 
     prompts = ["Hello world", "Goodbye world"]
-    results = mass_generation(prompts, generator)
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path))
 
-    assert len(results) == 2
+    ls = os.listdir(tmp_path)
+    assert len(ls) > 0
+
+    file_path = os.listdir(os.path.join(tmp_path, ls[0]))
+    assert len(file_path) > 0
 
 
 def test_generation_monkey_generator():
-    generator = MonkeyGenerator(speed=-1, n_functions=np.random.randint(0, 100))
-    prompts = "Hello world"
-    generation(prompts, generator)
-
-
-def test_mass_generation_monkey_generator():
     n_functions = np.random.randint(0, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
+    prompts = "Hello world"
+    result = generation(prompts, generator, update_progress, 10)
+    assert len(result) == n_functions
+
+
+def test_mass_generation_monkey_generator(mocker, tmp_path):
+    n_functions = np.random.randint(1, 100)
+
+    def get_generator():
+        return MonkeyGenerator(speed=-1, n_functions=n_functions)
 
     prompts = ["Hello world", "Goodbye world"] * 20
-    results = mass_generation(prompts, generator)
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path))
+    ls = os.listdir(tmp_path)
+    assert len(ls) > 0
 
-    assert len(results) == n_functions * 20 * 2
+    file_path = os.listdir(os.path.join(tmp_path, ls[0]))
+    assert len(file_path) > 0
 
 
 def test_load_prompts():

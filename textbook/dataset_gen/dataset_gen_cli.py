@@ -1,45 +1,119 @@
-from typing import Optional
+import random
+import itertools
+import json
+import numpy as np
 from typer import Typer
-
+from typing import List
 from textbook.dataset_gen.dataset_gen import (
-    Generator,
-    load_prompts,
+    load_leaves,
     mass_generation,
     OpenAIGenerator,
     MonkeyGenerator,
-    write_results_to_jsonl,
 )
+import openai
+import os
+
+from textbook.dataset_gen.create_prompts import Topic, Query
 
 app = Typer()
 
 
+def create_prompt_query(topic_1: Topic, topic_2: Topic, profession: str) -> str:
+    query = f'''
+            Create a code completion exercise on the intersection of “{topic_1.topic}” and “{topic_2.topic}”.  
+            Write it for a {profession}. 
+
+            The exercise must be of the style: 
+
+            ```
+            def name(args):
+
+            """Docstring explaining the exercise"""
+
+            python code to solve the exercise
+            ```
+
+            NO CLASSES
+
+            MAKE IT VERY DIFFICULT
+            '''
+    query = "\n".join([m.lstrip() for m in query.strip().split("\n")])
+    return query
+
+
+def create_prompts(
+    topic: Topic,
+    combination_options: List[Topic],
+    professions: List[str],
+    n: int,
+) -> List[Query]:
+    random.shuffle(combination_options)
+    prompts: List[Query] = []
+
+    for loc_topic in combination_options:
+        if len(prompts) == n:
+            break
+
+        if loc_topic.mixing and loc_topic.parent != topic.parent:
+            profession = professions[np.random.randint(0, len(professions))]
+            query = create_prompt_query(topic, loc_topic, profession)
+            prompts.append(Query(query=query, topic_1=topic, topic_2=loc_topic))
+
+    return prompts
+
+
 @app.command()
 def generate(
-    prompt_path: str,
-    output_path: Optional[str] = None,
+    tree_path: str,
+    leaves_path: str,
+    output_path: str,
     retries: int = 10,
     pool_size: int = 10,
     debug: bool = False,
     debug_speed: int = 2,
-    debug_multiplier: int = 1,
+    n_combinations: int = 200,
+    n_prompts: int = 100,
 ):
-    generator: Generator
+    with open(tree_path, "r") as openfile:
+        # Reading from json file
+        professions = list(json.load(openfile))
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
 
     if not debug:
-        generator = OpenAIGenerator()
+        openai.api_key = os.environ["OPENAI_API_KEY"]
+
+        def get_generator():
+            return OpenAIGenerator()
+
     else:
-        generator = MonkeyGenerator(speed=debug_speed)
 
-    prompts = load_prompts(prompt_path)
-    if debug:
-        prompts = prompts * debug_multiplier
+        def get_generator():
+            return MonkeyGenerator(speed=debug_speed)
 
-    results = mass_generation(prompts, generator, pool_size=pool_size, retries=retries)
+    leaves = load_leaves(leaves_path)
 
-    if output_path is None:
-        output_path = prompt_path.replace(".jsonl", "_results.jsonl")
+    prompts: List[List[Query]] = [
+        create_prompts(
+            i,
+            combination_options=leaves,
+            professions=professions,
+            n=n_combinations,
+        )
+        for i in leaves
+    ]
 
-    write_results_to_jsonl(output_path, results)
+    prompts_flat = list(itertools.chain(*prompts))
+    prompts_selection = [i.query for i in prompts_flat][:n_prompts]
+
+    mass_generation(
+        prompts_selection,
+        get_generator,
+        save_dir=output_path,
+        pool_size=pool_size,
+        retries=retries,
+    )
 
 
 if __name__ == "__main__":
