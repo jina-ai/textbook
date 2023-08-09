@@ -154,7 +154,6 @@ def _generation_wrapper(
     save_dir: str,
     retries: int,
 ):
-
     file_path_sum = hashlib.md5(prompt.encode("utf-8")).hexdigest()
 
     dir_path, file_path = file_path_sum[:4], file_path_sum[4:]
@@ -174,7 +173,7 @@ def _generation_wrapper(
 
     results = generation(prompt, generator, update_progress, retries)
 
-    save_results_to_disk(file_path, results)
+    write_results_to_jsonl(file_path, results)
 
 
 def mass_generation(
@@ -184,11 +183,10 @@ def mass_generation(
     save_every: int,
     pool_size: int = 10,
     retries: int = 10,
-) -> List[Exercise]:
+):
     """
     Generate from a list of prompts. Use a thread pool to parallelize the generation with catch and retry mechanism
     """
-    results = []
     with Progress(
         *Progress.get_default_columns(),
         "•",
@@ -208,8 +206,6 @@ def mass_generation(
 
             list(executor.map(map_fn, prompts))
 
-    return results
-
 
 def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
     with open(file, "r") as f:
@@ -227,13 +223,6 @@ def load_leaves(file: str) -> List[Topic]:
 
 
 def write_results_to_jsonl(file_path: str, results: List[Exercise]):
-    with open(file_path, "w") as file:
-        for item in results:
-            json.dump(item.dict(), file)
-            file.write("\n")
-
-
-def save_results_to_disk(file_path: str, results: List[Exercise]):
     with open(file_path, "w") as file:
         for item in results:
             json.dump(item.dict(), file)

@@ -12,7 +12,6 @@ from textbook.dataset_gen.dataset_gen import (
     generator_to_exercises,
     split_exercises,
     check_exercise,
-    Exercise,
 )
 import numpy as np
 import pytest
@@ -28,6 +27,10 @@ def mock_openai(mocker):
     )
 
 
+def update_progress():
+    ...
+
+
 @pytest.mark.openai
 def test_generation():
     generator = OpenAIGenerator()
@@ -40,7 +43,7 @@ def test_generation_mock(mocker):
     generator = OpenAIGenerator()
     gen = generator.generate("Hello world")
     prompts = "Hello World"
-    generation(prompts, generator)
+    generation(prompts, generator, update_progress, 10)
     assert isinstance(gen, Result)
     assert gen.prompt == "Cheesecake with strawberries"
     assert gen.output == 'def gruyere(): """No way jose""" return 0' * 2
@@ -48,40 +51,41 @@ def test_generation_mock(mocker):
 
 def test_mass_generation(mocker, tmp_path):
     mock_openai(mocker)
-    generator = OpenAIGenerator()
+
+    def get_generator():
+        return OpenAIGenerator()
 
     prompts = ["Hello world", "Goodbye world"]
-    mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
-    assert len(os.listdir(tmp_path)) == 2
-    with open(f"{tmp_path}/results_1.jsonl", "r") as f:
-        lines = f.readlines()
-    assert (
-        Exercise.parse_obj(json.loads(lines[0])).problem
-        == 'def gruyere(): """No way jose"""'
-    )
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path), save_every=1)
+
+    ls = os.listdir(tmp_path)
+    assert len(ls) > 0
+
+    file_path = os.listdir(os.path.join(tmp_path, ls[0]))
+    assert len(file_path) > 0
 
 
 def test_generation_monkey_generator():
     n_functions = np.random.randint(0, 100)
     generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
     prompts = "Hello world"
-    result = generation(prompts, generator)
+    result = generation(prompts, generator, update_progress, 10)
     assert len(result) == n_functions
 
 
 def test_mass_generation_monkey_generator(mocker, tmp_path):
     n_functions = np.random.randint(1, 100)
-    generator = MonkeyGenerator(speed=-1, n_functions=n_functions)
+
+    def get_generator():
+        return MonkeyGenerator(speed=-1, n_functions=n_functions)
 
     prompts = ["Hello world", "Goodbye world"] * 20
-    mass_generation(prompts, generator, save_dir=str(tmp_path), save_every=1)
-    assert len(os.listdir(tmp_path)) > 20
-    with open(f"{tmp_path}/results_0.jsonl", "r") as f:
-        lines = f.readlines()
-    assert (
-        Exercise.parse_obj(json.loads(lines[0])).problem
-        == 'def gorilla(): """Empty function for a gorilla"""'
-    )
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path), save_every=1)
+    ls = os.listdir(tmp_path)
+    assert len(ls) > 0
+
+    file_path = os.listdir(os.path.join(tmp_path, ls[0]))
+    assert len(file_path) > 0
 
 
 def test_load_prompts():

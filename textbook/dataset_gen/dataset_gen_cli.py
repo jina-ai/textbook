@@ -5,7 +5,6 @@ import numpy as np
 from typer import Typer
 from typing import List
 from textbook.dataset_gen.dataset_gen import (
-    Generator,
     load_leaves,
     mass_generation,
     OpenAIGenerator,
@@ -63,13 +62,9 @@ def create_prompts(
     return prompts
 
 
-with open("tree/professions.json", "r") as openfile:
-    # Reading from json file
-    professions = list(json.load(openfile))
-
-
 @app.command()
 def generate(
+    tree_path: str,
     leaves_path: str,
     output_path: str,
     retries: int = 10,
@@ -79,14 +74,15 @@ def generate(
     n_combinations: int = 200,
     n_prompts: int = 100,
 ):
+    with open(tree_path, "r") as openfile:
+        # Reading from json file
+        professions = list(json.load(openfile))
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    generator: Generator
-
-    openai.api_key = os.environ["OPENAI_API_KEY"]
     if not debug:
+        openai.api_key = os.environ["OPENAI_API_KEY"]
 
         def get_generator():
             return OpenAIGenerator()
