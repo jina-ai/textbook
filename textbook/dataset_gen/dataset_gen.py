@@ -192,18 +192,31 @@ def mass_generation(
         TimeElapsedColumn(),
     ) as progress:
 
-        def update_progress():
-            progress.update(task, advance=1)
-
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
-            task = progress.add_task("[red]Generating...", total=len(prompts))
+            progress_task = progress.add_task("[red]Generating...", total=len(prompts))
 
-            def map_fn(prompt):
-                _generation_wrapper(
-                    prompt, get_generator, update_progress, save_dir, retries
+            def update_progress():
+                progress.update(progress_task, advance=1)
+
+            tasks = []
+
+            for prompt in prompts:
+                tasks.append(
+                    executor.submit(
+                        _generation_wrapper,
+                        prompt,
+                        get_generator,
+                        update_progress,
+                        save_dir,
+                        retries,
+                    )
                 )
 
-            list(executor.map(map_fn, prompts))
+            for task in tasks:
+                try:
+                    task.result()
+                except Exception as e:
+                    raise e
 
 
 def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
