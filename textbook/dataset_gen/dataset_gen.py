@@ -180,7 +180,6 @@ def mass_generation(
     prompts: List[str],
     get_generator: Callable[[], Generator],
     save_dir: str,
-    save_every: int,
     pool_size: int = 10,
     retries: int = 10,
 ):

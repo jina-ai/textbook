@@ -56,7 +56,7 @@ def test_mass_generation(mocker, tmp_path):
         return OpenAIGenerator()
 
     prompts = ["Hello world", "Goodbye world"]
-    mass_generation(prompts, get_generator, save_dir=str(tmp_path), save_every=1)
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path))
 
     ls = os.listdir(tmp_path)
     assert len(ls) > 0
@@ -80,7 +80,7 @@ def test_mass_generation_monkey_generator(mocker, tmp_path):
         return MonkeyGenerator(speed=-1, n_functions=n_functions)
 
     prompts = ["Hello world", "Goodbye world"] * 20
-    mass_generation(prompts, get_generator, save_dir=str(tmp_path), save_every=1)
+    mass_generation(prompts, get_generator, save_dir=str(tmp_path))
     ls = os.listdir(tmp_path)
     assert len(ls) > 0
 

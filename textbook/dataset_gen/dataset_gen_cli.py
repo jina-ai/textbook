@@ -111,7 +111,6 @@ def generate(
         prompts_selection,
         get_generator,
         save_dir=output_path,
-        save_every=int(n_prompts / 10),
         pool_size=pool_size,
         retries=retries,
     )
