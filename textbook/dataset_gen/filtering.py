@@ -23,10 +23,8 @@ def load_all_exo(path: Union[Path, str]) -> List[Exercise]:
 def filter_bad_exos(
     exos: List[Exercise], carac_to_remove=["??", "___"]
 ) -> List[Exercise]:
-
     clean_exos: List[Exercise] = []
     for exo in exos:
-
         keep = True
         for carac in carac_to_remove:
             if carac in exo.solution:
