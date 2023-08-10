@@ -191,7 +191,6 @@ def mass_generation(
         "•",
         TimeElapsedColumn(),
     ) as progress:
-
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
             progress_task = progress.add_task("[red]Generating...", total=len(prompts))
 
