@@ -88,3 +88,8 @@ Once the file are generated you can postprocess the files and save it into a jso
 python dataset_gen_cli.py filter ./exercises dataset.jsonl
 ```
 
+push to hf dataset
+
+```shell
+python dataset_gen.py push "jinaai/code_exercises_40k" dataset.jsonl
+```
