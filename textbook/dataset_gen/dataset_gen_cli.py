@@ -128,6 +128,7 @@ def filter(exo_path: Path, dataset_file: str):
     write_results_to_jsonl(dataset_file, exos)
 
 
+@app.command()
 def push(repo_name: str, dataset_file: Path):
     with open(dataset_file, "r") as file:
         lines = file.readlines()
