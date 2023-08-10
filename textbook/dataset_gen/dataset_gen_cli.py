@@ -9,11 +9,14 @@ from textbook.dataset_gen.dataset_gen import (
     mass_generation,
     OpenAIGenerator,
     MonkeyGenerator,
+    write_results_to_jsonl,
 )
 import openai
 import os
+from pathlib import Path
 
 from textbook.dataset_gen.create_prompts import Topic, Query
+from textbook.dataset_gen.filtering import load_and_filter_exos
 
 app = Typer()
 
@@ -114,6 +117,14 @@ def generate(
         pool_size=pool_size,
         retries=retries,
     )
+
+
+@app.command()
+def filter(exo_path: Path, dataset_file: str):
+    print(exo_path)
+    exos = load_and_filter_exos(exo_path)
+    print(len(exos))
+    write_results_to_jsonl(dataset_file, exos)
 
 
 if __name__ == "__main__":

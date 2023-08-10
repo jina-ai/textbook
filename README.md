@@ -66,6 +66,25 @@ Another way to inject diversity is prompt engineering. By having random aspects 
 
 ## Generating Dataset
 
-```shell 
-python textbook/dataset_gen/dataset_gen_cli.py --pool-size 10 "tests/data/prompts_debug.jsonl"
+
+Follow this step to reproduce the dataset generation
+
+
+First export your openAI key 
+```shell
+export OPENAI_API_KEY=sk-XXX
 ```
+then start to parrallel call to open ai
+```shell
+python dataset_gen_cli.py generate ./tree/professions.json ./tree/subsubtopics.json ./exercises --n-prompts 50_000 --pool-size 20
+```
+
+this should take around 6hours. The process might be killed before the end but the data will still be save progressivly.
+
+
+Once the file are generated you can postprocess the files and save it into a jsonl file
+
+```shell 
+python dataset_gen_cli.py filter ./exercises dataset.jsonl
+```
+
