@@ -5,7 +5,7 @@ from typing import Optional, Dict, Type, Annotated
 
 import torch
 
-from textbook.dataset import DummyDataset
+from textbook.dataset import CustomDataset
 from textbook.evaluate import evaluate
 from textbook.model import BaseModule
 
@@ -37,6 +37,7 @@ def log_args(func):
 def train(
     *,
     module: str = "StarCoder",
+    dataset: str = "ExerciseDatast",
     epochs: int = 1,
     micro_batch_size: int = 1,
     batch_size: int = 1,
@@ -59,7 +60,11 @@ def train(
     model = torch.compile(module_instance.model)
     model = module_instance.model
     tokenizer = module_instance.tokenizer
-    dataset = DummyDataset(tokenizer=tokenizer, debug=debug)
+
+    dataset_cls: Type[CustomDataset] = getattr(
+        import_module("textbook.dataset"), dataset
+    )
+    dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
 
     if debug:
         wandb_run_name = "debug"
@@ -78,18 +83,19 @@ def train(
 
     use_wandb = local_rank == 0 and use_wandb
     if use_wandb:
-        run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
+        run = wandb.init(project=wandb_project, **dict(config=config_to_log))  # type: ignore
     else:
         run = None  # type: ignore
 
     trainer = transformers.Trainer(
         model=model,
-        train_dataset=dataset.train_dataset,
-        eval_dataset=dataset.test_dataset,
+        train_dataset=dataset_instance.train_dataset,
+        eval_dataset=dataset_instance.test_dataset,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=micro_batch_size,
             gradient_accumulation_steps=batch_size // micro_batch_size,
             optim="adamw_torch",
+            # gradient_checkpointing=True,
             warmup_steps=100,
             num_train_epochs=epochs,
             learning_rate=learning_rate,
@@ -104,7 +110,7 @@ def train(
             run_name=wandb_run_name if use_wandb else None,
             remove_unused_columns=False,
         ),
-        data_collator=dataset.data_collator,
+        data_collator=dataset_instance.data_collator,
     )
 
     trainer.train()
