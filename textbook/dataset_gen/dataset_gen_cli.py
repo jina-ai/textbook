@@ -17,6 +17,7 @@ from pathlib import Path
 
 from textbook.dataset_gen.create_prompts import Topic, Query
 from textbook.dataset_gen.filtering import load_and_filter_exos
+from datasets import Dataset
 
 app = Typer()
 
@@ -125,6 +126,20 @@ def filter(exo_path: Path, dataset_file: str):
     exos = load_and_filter_exos(exo_path)
     print(len(exos))
     write_results_to_jsonl(dataset_file, exos)
+
+
+@app.command()
+def push(repo_name: str, dataset_file: Path):
+    with open(dataset_file, "r") as file:
+        lines = file.readlines()
+        exercises = [json.loads(line) for line in lines]
+
+    def gen():
+        for exo in exercises:
+            yield exo
+
+    dataset = Dataset.from_generator(gen)
+    dataset.push_to_hub(repo_name)
 
 
 if __name__ == "__main__":
