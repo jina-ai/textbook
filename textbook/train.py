@@ -94,7 +94,8 @@ def train(
         args=transformers.TrainingArguments(
             per_device_train_batch_size=micro_batch_size,
             gradient_accumulation_steps=batch_size // micro_batch_size,
-            optim="adamw_torch",
+            optim="paged_adamw_8bit",
+            gradient_checkpointing=True,
             warmup_steps=100,
             num_train_epochs=epochs,
             learning_rate=learning_rate,
