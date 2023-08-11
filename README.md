@@ -91,5 +91,5 @@ python dataset_gen_cli.py filter ./exercises dataset.jsonl
 push to hf dataset
 
 ```shell
-python dataset_gen.py push "jinaai/code_exercises_40k" dataset.jsonl
+python dataset_gen_cli.py push "jinaai/code_exercises_40k" dataset.jsonl
 ```

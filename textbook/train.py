@@ -55,7 +55,6 @@ def train(
     eval_size: Optional[int] = None,
     eval_max_new_tokens: int = 512,
 ):
-
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
     model = torch.compile(module_instance.model)
