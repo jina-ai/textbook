@@ -83,7 +83,7 @@ def train(
 
     use_wandb = local_rank == 0 and use_wandb
     if use_wandb:
-        run = wandb.init(wandb_project, **dict(config=config_to_log))  # type: ignore
+        run = wandb.init(project=wandb_project, **dict(config=config_to_log))  # type: ignore
     else:
         run = None  # type: ignore
 
