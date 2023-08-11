@@ -25,11 +25,8 @@ a100 run :
 
 
 ```cmd
-python textbook/train.py --module StarCoder --epochs 1 --micro-batch-size 8 --batch-size 128 --wandb-project textbook_debug --use-wandb --no-wandb-log-model
+python textbook/train.py --module StarCoder --dataset ExerciseDatast --epochs 1 --micro-batch-size 8 --batch-size 128 --wandb-project textbook_debug --use-wandb --no-wandb-log-model
 ```
-
-Multiple GPU run
-
 
 
 ```cmd
