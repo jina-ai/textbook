@@ -119,7 +119,7 @@ def train(
         model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens
     )
 
-    if use_wandb and run and wandb_log_model:
+    if use_wandb and run:
         # log accuracy@k results
         run.log(accuracy_results)
 
@@ -130,10 +130,11 @@ def train(
         eval_table = wandb.Table(columns=columns, data=results_data)
         run.log({"Evaluation": eval_table})
 
-        # upload model weights
-        artifact = wandb.Artifact(name="model_weight", type="model")
-        artifact.add_dir(output_dir)
-        run.log_artifact(artifact)  # type: ignore
+        if wandb_log_model:
+            # upload model weights
+            artifact = wandb.Artifact(name="model_weight", type="model")
+            artifact.add_dir(output_dir)
+            run.log_artifact(artifact)  # type: ignore
 
 
 if __name__ == "__main__":
