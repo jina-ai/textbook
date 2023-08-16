@@ -1,3 +1,4 @@
+import threading
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -14,8 +15,13 @@ from textbook.dataset_gen.create_prompts import Topic
 from rich.progress import (
     Progress,
     TimeElapsedColumn,
+    TextColumn,
 )
 import hashlib
+
+THREAD_LOCK = threading.Lock()
+PROMPT_TOKENS_CNT = 0
+COMPLETION_TOKENS_CNT = 0
 
 
 class Exercise(BaseModel):
@@ -78,12 +84,17 @@ class OpenAIGenerator:
         self.model = model
 
     def generate(self, prompt: str) -> Result:
+        global PROMPT_TOKENS_CNT
+        global COMPLETION_TOKENS_CNT
         chat_completion = openai.ChatCompletion.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=250,
             timeout=60,
         )
+        with THREAD_LOCK:
+            PROMPT_TOKENS_CNT += chat_completion.usage.prompt_tokens
+            COMPLETION_TOKENS_CNT += chat_completion.usage.completion_tokens
         result = Result(
             prompt=prompt, output=chat_completion.choices[0].message.content
         )
@@ -190,12 +201,24 @@ def mass_generation(
         *Progress.get_default_columns(),
         "•",
         TimeElapsedColumn(),
+        TextColumn("completion: [bold green]{task.fields[completion_tokens]}"),
+        TextColumn("prompt: [bold green]{task.fields[prompt_tokens]}"),
     ) as progress:
         with ThreadPoolExecutor(max_workers=pool_size) as executor:
-            progress_task = progress.add_task("[red]Generating...", total=len(prompts))
+            progress_task = progress.add_task(
+                "[red]Generating...",
+                total=len(prompts),
+                completion_tokens=0,
+                prompt_tokens=0,
+            )
 
             def update_progress():
-                progress.update(progress_task, advance=1)
+                progress.update(
+                    progress_task,
+                    advance=1,
+                    completion_tokens=COMPLETION_TOKENS_CNT,
+                    prompt_tokens=PROMPT_TOKENS_CNT,
+                )
 
             tasks = []
 
