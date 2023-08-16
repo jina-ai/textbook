@@ -17,7 +17,7 @@ if torch.cuda.is_available():
 else:
     device = "cpu"
 
-STOP_WORDS = ["\nclass", "\ndef", "\n@", "\nprint", "\nif"]
+STOP_WORDS = ["\nclass", "\ndef", "\n@", "\nprint", "\nif", "\n#"]
 
 
 class EndOfFunctionCriteria(StoppingCriteria):
