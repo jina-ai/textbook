@@ -1,10 +1,14 @@
 import json
-import re
 import tempfile
 from typing import Optional, Union, List
 
 import torch
-from transformers import PreTrainedTokenizer, PreTrainedModel
+from transformers import (
+    PreTrainedTokenizer,
+    PreTrainedModel,
+    StoppingCriteria,
+    StoppingCriteriaList,
+)
 from human_eval.data import write_jsonl, read_problems, HUMAN_EVAL
 from human_eval.evaluation import evaluate_functional_correctness
 
@@ -12,6 +16,43 @@ if torch.cuda.is_available():
     device = "cuda"
 else:
     device = "cpu"
+
+STOP_WORDS = ["\nclass", "\ndef", "\n@", "\nprint", "\nif", "\n#"]
+
+
+class EndOfFunctionCriteria(StoppingCriteria):
+    """Custom `StoppingCriteria` which checks if all generated functions in the batch are completed."""
+
+    def __init__(self, tokenizer, start_length=0):
+        self.start_length = start_length
+        self.tokenizer = tokenizer
+
+    def __call__(self, input_ids, scores, **kwargs):
+        """Returns true if all generated sequences contain any of the end-of-function strings."""
+        decoded_generations = self.tokenizer.batch_decode(
+            input_ids[:, self.start_length :]
+        )
+        done = []
+        for decoded_generation in decoded_generations:
+            done.append(
+                any([stop_string in decoded_generation for stop_string in STOP_WORDS])
+            )
+        return all(done)
+
+
+def _stop_at_stop_token(decoded_string, stop_tokens):
+    """
+    Produces the prefix of decoded_string that ends at the first occurrence of
+    a stop_token.
+    WARNING: the decoded_string *must not* include the prompt, which may have stop tokens
+    itself.
+    """
+    min_stop_index = len(decoded_string)
+    for stop_token in stop_tokens:
+        stop_index = decoded_string.find(stop_token)
+        if stop_index != -1 and stop_index < min_stop_index:
+            min_stop_index = stop_index
+    return decoded_string[:min_stop_index]
 
 
 def read_jsonl_file(file_path):
@@ -29,26 +70,27 @@ def generate_one_completion(
     prompt: str,
     max_new_tokens: int = 512,
 ) -> List[str]:
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-
+    inputs = tokenizer(prompt.rstrip(), return_tensors="pt").to("cuda")
+    stopping_criteria = StoppingCriteriaList(
+        [EndOfFunctionCriteria(tokenizer, start_length=len(inputs["input_ids"][0]))]
+    )
     generation_output = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
         eos_token_id=tokenizer.eos_token_id,
         return_dict_in_generate=True,
+        stopping_criteria=stopping_criteria,
+        # do_sample=True,
+        # temperature=0.2,
+        # top_k=0,
+        # top_p=0.95
     )
 
     s = generation_output.sequences[0]
     output = tokenizer.decode(s, skip_special_tokens=True)
-    matches = list(re.finditer(r"\bdef\s+\w+\s*\(", output))
-    if len(matches) > 1:
-        output = output[: matches[1].span()[0]]
-
-    if not output.startswith(prompt):
-        print("output will not be cleaned properly:", output)
-    else:
-        output = output[len(prompt) :]
-    return output
+    generation = output[len(prompt) :]
+    generation = prompt + _stop_at_stop_token(generation, STOP_WORDS)
+    return generation
 
 
 def evaluate(

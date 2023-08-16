@@ -6,7 +6,6 @@ from transformers import (
     PreTrainedModel,
     AutoModelForCausalLM,
     GPTBigCodeConfig,
-    GPTBigCodeForCausalLM,
 )
 
 
@@ -68,10 +67,15 @@ class StarCoder:
 
     def __init__(self, debug: bool = False):
         self._init_tokenizer()
-        self.model = GPTBigCodeForCausalLM.from_pretrained(
-            self.base_model,
-            config=self.config if not debug else self.debug_config,
-        )
+        if debug:
+            self.model = AutoModelForCausalLM.from_pretrained(
+                self.base_model,
+                config=self.debug_config,
+            )
+        else:
+            self.model = AutoModelForCausalLM.from_pretrained(self.base_model).to(
+                "cuda"
+            )
 
     def _init_tokenizer(self):
         self.tokenizer = AutoTokenizer.from_pretrained(
