@@ -54,6 +54,7 @@ def train(
     debug: bool = False,
     eval_size: Optional[int] = None,
     eval_max_new_tokens: int = 512,
+    n_samples: Optional[int] = None,
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
@@ -65,6 +66,11 @@ def train(
         import_module("textbook.dataset"), dataset
     )
     dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
+
+    if n_samples:
+        dataset_instance.train_dataset = dataset_instance.train_dataset.select(
+            range(n_samples)
+        )
 
     if debug:
         wandb_run_name = "debug"
