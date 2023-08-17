@@ -77,11 +77,12 @@ class ExerciseDatast:
     def __init__(
         self,
         tokenizer: PreTrainedTokenizer,
+        dataset_name: str = "jinaai/code_exercises_40k",
         debug: bool = False,
     ):
         self.debug = debug
 
-        dataset = load_dataset("jinaai/code_exercises_40k")["train"]
+        dataset = load_dataset(dataset_name)["train"]
 
         if debug:
             dataset = dataset.select(range(10))

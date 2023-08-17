@@ -55,6 +55,7 @@ def train(
     eval_size: Optional[int] = None,
     eval_max_new_tokens: int = 512,
     n_samples: Optional[int] = None,
+    dataset_name: Optional[str] = "jinaai/code_exercises_40k",
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
@@ -65,7 +66,12 @@ def train(
     dataset_cls: Type[CustomDataset] = getattr(
         import_module("textbook.dataset"), dataset
     )
-    dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
+    if dataset_name:
+        dataset_instance = dataset_cls(
+            tokenizer=tokenizer, debug=debug, dataset_name=dataset_name
+        )
+    else:
+        dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
 
     if n_samples:
         dataset_instance.train_dataset = dataset_instance.train_dataset.select(
