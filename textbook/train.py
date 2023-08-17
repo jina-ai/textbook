@@ -41,7 +41,7 @@ def train(
     epochs: int = 1,
     micro_batch_size: int = 1,
     batch_size: int = 1,
-    learning_rate: float = 3e-4,
+    learning_rate: float = 3e-5,
     output_dir: Optional[str] = None,
     wandb_run_name: str = "",
     use_wandb: bool = False,
