@@ -127,6 +127,13 @@ def train(
 
     trainer.train()
 
+    model.save_pretrained("jinaai/starcoder-1b-textbook")
+    tokenizer.save_pretrained("jinaai/starcoder-1b-textbook")
+
+    # Push to the hub
+    model.push_to_hub("jinaai/starcoder-1b-textbook")
+    tokenizer.push_to_hub("jinaai/starcoder-1b-textbook")
+
     accuracy_results, sample_results = evaluate(
         model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens
     )
