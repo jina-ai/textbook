@@ -238,7 +238,7 @@ def mass_generation(
                 try:
                     task.result()
                 except Exception as e:
-                    raise e
+                    print(e)
 
 
 def load_prompts(file: str, key_prompt: str = "prompt") -> List[str]:
