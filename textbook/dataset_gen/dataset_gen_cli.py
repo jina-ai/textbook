@@ -1,7 +1,7 @@
+from copy import deepcopy
 import random
 import itertools
 import json
-import numpy as np
 from typer import Typer
 from typing import List
 from textbook.dataset_gen.dataset_gen import (
@@ -49,18 +49,28 @@ def create_prompts(
     topic: Topic,
     combination_options: List[Topic],
     professions: List[str],
-    n: int,
+    limit: int = -1,
 ) -> List[Query]:
     random.shuffle(combination_options)
+
     prompts: List[Query] = []
 
-    for _ in range(len(professions)):
-        for loc_topic in combination_options:
-            if len(prompts) == n:
+    def copy_and_shuffle(prof):
+        professions_copy = deepcopy(prof)
+        random.shuffle(professions_copy)
+        return professions_copy
+
+    profession_for_loc_topic = [
+        copy_and_shuffle(professions) for _ in combination_options
+    ]
+
+    for i in range(len(professions)):
+        for j, loc_topic in enumerate(combination_options):
+            if len(prompts) == limit:
                 break
 
             if loc_topic.mixing and loc_topic.parent != topic.parent:
-                profession = professions[np.random.randint(0, len(professions))]
+                profession = profession_for_loc_topic[j][i]
                 query = create_prompt_query(topic, loc_topic, profession)
                 prompts.append(Query(query=query, topic_1=topic, topic_2=loc_topic))
 
@@ -76,7 +86,7 @@ def generate(
     pool_size: int = 10,
     debug: bool = False,
     debug_speed: int = 2,
-    n_combinations: int = 200,
+    gen_limit_per_topic: int = 200,
     n_prompts: int = 100,
 ):
     with open(tree_path, "r") as openfile:
@@ -103,7 +113,7 @@ def generate(
             i,
             combination_options=leaves,
             professions=professions,
-            n=n_combinations,
+            limit=gen_limit_per_topic,
         )
         for i in leaves
     ]

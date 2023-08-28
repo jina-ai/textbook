@@ -174,10 +174,8 @@ def _generation_wrapper(
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
-    if os.path.exists(
-        file_path
-    ):  # WE DONT SPEND MONEY ON EXISTING QUERY HAHAHAHAHAHAHAHAH
-        print("EVIL LAUGH LOLILOL")
+    if os.path.exists(file_path):  # we don't regenerate each query
+        print(f"skip {file_path} generation because it already exist ")
         return
 
     generator = get_generator()
