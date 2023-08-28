@@ -73,6 +73,7 @@ export OPENAI_API_KEY=sk-XXX
 ```
 then start to parrallel call to open ai
 ```shell
+cd textbook/dataset_gen
 python dataset_gen_cli.py generate ./tree/professions.json ./tree/subsubtopics.json ./exercises --n-prompts 2_000_000 --pool-size 40 
 ```
 
