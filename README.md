@@ -73,7 +73,7 @@ export OPENAI_API_KEY=sk-XXX
 ```
 then start to parrallel call to open ai
 ```shell
-python dataset_gen_cli.py generate ./tree/professions.json ./tree/subsubtopics.json ./exercises --n-prompts 2_400_000 --pool-size 40 --gen-limit-per-topic -1 
+python dataset_gen_cli.py generate ./tree/professions.json ./tree/subsubtopics.json ./exercises --n-prompts 2_000_000 --pool-size 40 
 ```
 
 this should take around 6hours. The process might be killed before the end but the data will still be save progressivly.
