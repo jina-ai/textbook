@@ -41,7 +41,7 @@ def train(
     epochs: int = 1,
     micro_batch_size: int = 1,
     batch_size: int = 1,
-    learning_rate: float = 3e-4,
+    learning_rate: float = 3e-5,
     output_dir: Optional[str] = None,
     wandb_run_name: str = "",
     use_wandb: bool = False,
@@ -49,11 +49,14 @@ def train(
     wandb_log_model: Optional[
         bool
     ] = None,  # will be true by default if use_wandb is true
+    push_model_to_hf: bool = False,  # if set, will push the model to hf
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
     debug: bool = False,
     eval_size: Optional[int] = None,
     eval_max_new_tokens: int = 512,
+    n_samples: Optional[int] = None,
+    dataset_name: Optional[str] = "jinaai/code_exercises_40k",
 ):
     module_cls: Type[BaseModule] = getattr(import_module("textbook.model"), module)
     module_instance = module_cls(debug=debug)
@@ -64,7 +67,17 @@ def train(
     dataset_cls: Type[CustomDataset] = getattr(
         import_module("textbook.dataset"), dataset
     )
-    dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
+    if dataset_name:
+        dataset_instance = dataset_cls(
+            tokenizer=tokenizer, debug=debug, dataset_name=dataset_name
+        )
+    else:
+        dataset_instance = dataset_cls(tokenizer=tokenizer, debug=debug)
+
+    if n_samples:
+        dataset_instance.train_dataset = dataset_instance.train_dataset.select(
+            range(n_samples)
+        )
 
     if debug:
         wandb_run_name = "debug"
@@ -114,6 +127,15 @@ def train(
     )
 
     trainer.train()
+
+    if push_model_to_hf:
+        # Save the pretrained model locally
+        model.save_pretrained(output_dir)  # type: ignore
+        tokenizer.save_pretrained(output_dir)  # type: ignore
+
+        # Push to the hub
+        model.push_to_hub("jinaai/starcoder-1b-textbook")  # type: ignore
+        tokenizer.push_to_hub("jinaai/starcoder-1b-textbook")  # type: ignore
 
     accuracy_results, sample_results = evaluate(
         model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens

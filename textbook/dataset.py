@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, Optional
 import random
 
 from datasets import Dataset, load_dataset
@@ -19,6 +19,7 @@ class CustomDataset(Protocol):
         self,
         tokenizer: PreTrainedTokenizer,
         debug: bool = False,
+        dataset_name: Optional[str] = None,
     ):
         ...
 
@@ -30,11 +31,7 @@ class DummyDataset:
             random_integer = random.randint(1, upper_bound)
             yield {"text": "hello world" * random_integer}
 
-    def __init__(
-        self,
-        tokenizer: PreTrainedTokenizer,
-        debug: bool = False,
-    ):
+    def __init__(self, tokenizer: PreTrainedTokenizer, debug: bool = False, **kwargs):
         self.debug = debug
 
         dataset = Dataset.from_generator(self.gen)
@@ -77,11 +74,12 @@ class ExerciseDatast:
     def __init__(
         self,
         tokenizer: PreTrainedTokenizer,
+        dataset_name: str = "jinaai/code_exercises_40k",
         debug: bool = False,
     ):
         self.debug = debug
 
-        dataset = load_dataset("jinaai/code_exercises_40k")["train"]
+        dataset = load_dataset(dataset_name)["train"]
 
         if debug:
             dataset = dataset.select(range(10))
