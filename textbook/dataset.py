@@ -19,7 +19,7 @@ class CustomDataset(Protocol):
         self,
         tokenizer: PreTrainedTokenizer,
         debug: bool = False,
-        dataset_name: Optional[str] = None
+        dataset_name: Optional[str] = None,
     ):
         ...
 
