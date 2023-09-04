@@ -49,7 +49,7 @@ def train(
     wandb_log_model: Optional[
         bool
     ] = None,  # will be true by default if use_wandb is true
-    push_model_to_hf: bool = False, # if set, will push the model to hf
+    push_model_to_hf: bool = False,  # if set, will push the model to hf
     local_rank: Annotated[int, typer.Option("--local_rank")] = 0,
     deepspeed: Optional[str] = None,
     debug: bool = False,
@@ -129,12 +129,15 @@ def train(
     trainer.train()
 
     if push_model_to_hf:
+        # Save the pretrained model locally
+        # mypy: ignore[attr-defined]
         model.save_pretrained(output_dir)
         tokenizer.save_pretrained(output_dir)
 
         # Push to the hub
-        model.push_to_hub('jinaai/starcoder-1b-textbook')
-        tokenizer.push_to_hub('jinaai/starcoder-1b-textbook')
+        # mypy: ignore[attr-defined]
+        model.push_to_hub("jinaai/starcoder-1b-textbook")
+        tokenizer.push_to_hub("jinaai/starcoder-1b-textbook")
 
     accuracy_results, sample_results = evaluate(
         model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens

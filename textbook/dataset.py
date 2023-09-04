@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, Optional
 import random
 
 from datasets import Dataset, load_dataset
@@ -19,6 +19,7 @@ class CustomDataset(Protocol):
         self,
         tokenizer: PreTrainedTokenizer,
         debug: bool = False,
+        dataset_name: Optional[str] = None
     ):
         ...
 
