@@ -130,12 +130,12 @@ def train(
 
     if push_model_to_hf:
         # Save the pretrained model locally
-        model.save_pretrained(output_dir)   # type: ignore
-        tokenizer.save_pretrained(output_dir)   # type: ignore
+        model.save_pretrained(output_dir)  # type: ignore
+        tokenizer.save_pretrained(output_dir)  # type: ignore
 
         # Push to the hub
-        model.push_to_hub("jinaai/starcoder-1b-textbook")   # type: ignore
-        tokenizer.push_to_hub("jinaai/starcoder-1b-textbook")   # type: ignore
+        model.push_to_hub("jinaai/starcoder-1b-textbook")  # type: ignore
+        tokenizer.push_to_hub("jinaai/starcoder-1b-textbook")  # type: ignore
 
     accuracy_results, sample_results = evaluate(
         model, tokenizer, eval_size=eval_size, max_new_tokens=eval_max_new_tokens
