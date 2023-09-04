@@ -31,11 +31,7 @@ class DummyDataset:
             random_integer = random.randint(1, upper_bound)
             yield {"text": "hello world" * random_integer}
 
-    def __init__(
-        self,
-        tokenizer: PreTrainedTokenizer,
-        debug: bool = False,
-    ):
+    def __init__(self, tokenizer: PreTrainedTokenizer, debug: bool = False, **kwargs):
         self.debug = debug
 
         dataset = Dataset.from_generator(self.gen)
