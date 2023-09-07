@@ -1,5 +1,4 @@
 # Textbook
-
 The goal of this project is to distill ChatGPT's Python coding ability into a smaller model with only 1 billion parameters. Our focus is on training the smaller model to solve coding tasks with natural language descriptions, and we use the [HumanEval](https://github.com/openai/human-eval) benchmark to evaluate our model. While we are aware that that benchmark is far from ideal, we believe that it is a good starting point to demonstrate the success of our approach to model distillation. We have drawn some inspiration from efforts to the results reported in the paper _Textbooks Are All You Need_ [(Gunasekar et al. 2023)](https://doi.org/10.48550/arXiv.2306.11644).
 
 This repository consists of two parts:
@@ -11,6 +10,8 @@ The generated exercises dataset is composed of a diverse set of \~120k Python co
 
 
 ## Usage
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]([https://colab.research.google.com/notebook_url](https://colab.research.google.com/drive/1T4IfGfDJ8uxgU8XBPpMZivw_JThzdQim?usp=sharing))
+
 You can download and use the model like so:
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
