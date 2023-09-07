@@ -10,7 +10,7 @@ The generated exercises dataset is composed of a diverse set of \~120k Python co
 
 
 ## Usage
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]([https://colab.research.google.com/notebook_url](https://colab.research.google.com/drive/1T4IfGfDJ8uxgU8XBPpMZivw_JThzdQim?usp=sharing))
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1T4IfGfDJ8uxgU8XBPpMZivw_JThzdQim?usp=sharing)
 
 You can download and use the model like so:
 ```python
